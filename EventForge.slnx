@@ -7,6 +7,7 @@
     <Project Path="EventForge.Booking/EventForge.Booking.Presentation/EventForge.Booking.Presentation.csproj" Id="1d501d97-7440-4e2c-b917-9abb8fb8e86a" />
   </Folder>
   <Folder Name="/EventForge.Booking/Tests/">
+    <Project Path="EventForge.Booking/Tests/EventForge.Booking.ArchitectureTests/EventForge.Booking.ArchitectureTests.csproj" Id="a187f4c5-84ed-4f11-8c0b-4dd489677bba" />
     <Project Path="EventForge.Booking/Tests/EventForge.Booking.e2eTests/EventForge.Booking.e2eTests.csproj" Id="763c0b8e-fbed-456f-833c-43fbf52f4a73" />
     <Project Path="EventForge.Booking/Tests/EventForge.Booking.IntegrationTests/EventForge.Booking.IntegrationTests.csproj" />
     <Project Path="EventForge.Booking/Tests/EventForge.Booking.UnitTests/EventForge.Booking.UnitTests.csproj" />
@@ -19,6 +20,7 @@
     <Project Path="EventForge.Events/EventForge.Events.Presentation/EventForge.Events.Presentation.csproj" Id="70b8c5bc-c2eb-40e5-88a2-57ab8e499b7a" />
   </Folder>
   <Folder Name="/EventForge.Events/Tests/">
+    <Project Path="EventForge.Events/Tests/EventForge.Events.ArchitectureTestsj/EventForge.Events.ArchitectureTests.csproj" Id="c4284f67-6952-4208-a964-a0efad6865b2" />
     <Project Path="EventForge.Events/Tests/EventForge.Events.e2eTests/EventForge.Events.e2eTests.csproj" Id="a9ccfca7-fc1e-4ed2-bfe6-66fcf94d9d70" />
     <Project Path="EventForge.Events/Tests/EventForge.Events.IntegrationTests/EventForge.Events.IntegrationTests.csproj" />
     <Project Path="EventForge.Events/Tests/EventForge.Events.UnitTests/EventForge.Events.UnitTests.csproj" />
@@ -41,6 +43,7 @@
     <Project Path="EventForge.Users/EventForge.Users.Presentation/EventForge.Users.Presentation.csproj" Id="3b53befc-b4d2-4276-8de9-b36f560666d4" />
   </Folder>
   <Folder Name="/EventForge.Users/Tests/">
+    <Project Path="EventForge.Users/Tests/EventForge.Users.ArchitectureTests/EventForge.Users.ArchitectureTests.csproj" Id="49428f16-2e9d-41ba-872c-8ede33af0042" />
     <Project Path="EventForge.Users/Tests/EventForge.Users.e2eTests/EventForge.Users.e2eTests.csproj" Id="60de949d-f619-44e9-b4cb-95abda1ed1db" />
     <Project Path="EventForge.Users/Tests/EventForge.Users.IntegrationTests/EventForge.Users.IntegrationTests.csproj" />
     <Project Path="EventForge.Users/Tests/EventForge.Users.UnitTests/EventForge.Users.UnitTests.csproj" />
@@ -50,5 +53,6 @@
     <File Path="Directory.Packages.props" />
     <File Path="docker-compose.yml" />
     <File Path="README.md" />
+    <File Path="roadmap.md" />
   </Folder>
 </Solution>

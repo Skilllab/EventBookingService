@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <IsPackable>false</IsPackable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="FluentAssertions" />
+        <PackageReference Include="Microsoft.NET.Test.Sdk" />
+        <PackageReference Include="NetArchTest.Rules" />
+        <PackageReference Include="xunit.v3" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\EventForge.Events.Application\EventForge.Events.Application.csproj" />
+        <ProjectReference Include="..\..\EventForge.Events.Domain\EventForge.Events.Domain.csproj" />
+        <ProjectReference Include="..\..\EventForge.Events.Infrastructure\EventForge.Events.Infrastructure.csproj" />
+        <ProjectReference Include="..\..\EventForge.Events.Presentation\EventForge.Events.Presentation.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Using Include="Xunit" />
+    </ItemGroup>
+
+</Project>
