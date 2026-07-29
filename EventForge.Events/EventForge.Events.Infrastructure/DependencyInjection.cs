@@ -76,9 +76,11 @@ public static class DependencyInjection
 
         services.AddSingleton<IEventPublisher, KafkaEventPublisher>();
 
+        services.AddSingleton<BookingRequestedMessageProcessor>();
+
         services.AddHostedService<BookingRequestedConsumer>();
         services.AddHostedService<BookingCancelledConsumer>();
-
+        services.AddHostedService<BookingRequestedRetryConsumer>(); // NEW
         services.AddHostedService<OutboxPublisherBackgroundService>();
 
 
