@@ -18,6 +18,19 @@ namespace EventForge.Events.UnitTests;
 
 public class KafkaConsumerTests
 {
+    private static BookingRequestedMessageProcessor CreateProcessor(
+        ServiceProvider provider,
+        FakeTimeProvider timeProvider,
+        Mock<ICacheService>? cacheMock = null)
+    {
+        cacheMock ??= new Mock<ICacheService>();
+        return new BookingRequestedMessageProcessor(
+            provider.GetRequiredService<IServiceScopeFactory>(),
+            cacheMock.Object,
+            timeProvider,
+            Mock.Of<ILogger<BookingRequestedMessageProcessor>>());
+    }
+
     [Fact]
     public async Task BookingCancelledConsumer_Should_Add_Message_After_Releasing_Seat()
     {
@@ -84,15 +97,19 @@ public class KafkaConsumerTests
         var services = new ServiceCollection();
         var processedRepositoryMock = new Mock<IProcessedMessageRepository>();
         var eventRepositoryMock = new Mock<IEventRepository>();
-        FakeTimeProvider _timeProvider = new(new DateTimeOffset(2026, 7, 13, 12, 0, 0, TimeSpan.Zero));
+        FakeTimeProvider timeProvider = new(new DateTimeOffset(2026, 7, 13, 12, 0, 0, TimeSpan.Zero));
         services.AddSingleton(processedRepositoryMock.Object);
         services.AddSingleton(eventRepositoryMock.Object);
         await using var provider = services.BuildServiceProvider();
+
+        var processor = CreateProcessor(provider, timeProvider);
         using var consumer = new BookingRequestedConsumer(
             provider.GetRequiredService<IServiceScopeFactory>(),
             Options.Create(new KafkaOptions { BootstrapServers = "localhost:9092", ConsumerGroup = "events-tests" }),
-            Mock.Of<ILogger<BookingRequestedConsumer>>(), Mock.Of<ICacheService>(), _timeProvider);
-
+            Mock.Of<ILogger<BookingRequestedConsumer>>(),
+            processor,
+            timeProvider);
+        
         await consumer.HandleMessageAsync(null, CancellationToken.None);
 
         processedRepositoryMock.Verify(x => x.AddAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
@@ -106,8 +123,8 @@ public class KafkaConsumerTests
         var services = new ServiceCollection();
         var processedRepositoryMock = new Mock<IProcessedMessageRepository>();
         var eventRepositoryMock = new Mock<IEventRepository>();
-        FakeTimeProvider _timeProvider = new(new DateTimeOffset(2026, 7, 13, 12, 0, 0, TimeSpan.Zero));
-        var message = new BookingRequested(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), 1, _timeProvider.GetUtcNow().UtcDateTime);
+        FakeTimeProvider timeProvider = new(new DateTimeOffset(2026, 7, 13, 12, 0, 0, TimeSpan.Zero));
+        var message = new BookingRequested(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), 1, timeProvider.GetUtcNow().UtcDateTime);
         processedRepositoryMock
                 .Setup(x => x.ExistsAsync(message.MessageId, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(true);
@@ -115,10 +132,13 @@ public class KafkaConsumerTests
         services.AddSingleton(processedRepositoryMock.Object);
         services.AddSingleton(eventRepositoryMock.Object);
         await using var provider = services.BuildServiceProvider();
+        var processor = CreateProcessor(provider, timeProvider);
         using var consumer = new BookingRequestedConsumer(
             provider.GetRequiredService<IServiceScopeFactory>(),
             Options.Create(new KafkaOptions { BootstrapServers = "localhost:9092", ConsumerGroup = "events-tests" }),
-            Mock.Of<ILogger<BookingRequestedConsumer>>(), Mock.Of<ICacheService>(), _timeProvider);
+            Mock.Of<ILogger<BookingRequestedConsumer>>(),
+            processor,
+            timeProvider);
 
         await consumer.HandleMessageAsync(message, CancellationToken.None);
 
@@ -133,8 +153,8 @@ public class KafkaConsumerTests
         var services = new ServiceCollection();
         var processedRepositoryMock = new Mock<IProcessedMessageRepository>();
         var eventRepositoryMock = new Mock<IEventRepository>();
-        FakeTimeProvider _timeProvider = new(new DateTimeOffset(2026, 7, 13, 12, 0, 0, TimeSpan.Zero));
-        var message = new BookingRequested(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), 1, _timeProvider.GetUtcNow().UtcDateTime);
+        FakeTimeProvider timeProvider = new(new DateTimeOffset(2026, 7, 13, 12, 0, 0, TimeSpan.Zero));
+        var message = new BookingRequested(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), 1, timeProvider.GetUtcNow().UtcDateTime);
         processedRepositoryMock
                 .Setup(x => x.ExistsAsync(message.MessageId, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(false);
@@ -145,10 +165,13 @@ public class KafkaConsumerTests
         services.AddSingleton(processedRepositoryMock.Object);
         services.AddSingleton(eventRepositoryMock.Object);
         await using var provider = services.BuildServiceProvider();
+        var processor = CreateProcessor(provider, timeProvider);
         using var consumer = new BookingRequestedConsumer(
             provider.GetRequiredService<IServiceScopeFactory>(),
             Options.Create(new KafkaOptions { BootstrapServers = "localhost:9092", ConsumerGroup = "events-tests" }),
-            Mock.Of<ILogger<BookingRequestedConsumer>>(), Mock.Of<ICacheService>(), _timeProvider);
+            Mock.Of<ILogger<BookingRequestedConsumer>>(),
+            processor,
+            timeProvider);
 
         await consumer.HandleMessageAsync(message, CancellationToken.None);
 
@@ -168,10 +191,10 @@ public class KafkaConsumerTests
         var services = new ServiceCollection();
         var processedRepositoryMock = new Mock<IProcessedMessageRepository>();
         var eventRepositoryMock = new Mock<IEventRepository>();
-        FakeTimeProvider _timeProvider = new(new DateTimeOffset(2026, 7, 13, 12, 0, 0, TimeSpan.Zero));
+        FakeTimeProvider timeProvider = new(new DateTimeOffset(2026, 7, 13, 12, 0, 0, TimeSpan.Zero));
 
-        var message = new BookingRequested(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), 1, _timeProvider.GetUtcNow().UtcDateTime);
-        var pastEvent = Event.Create("Прошедшее событие", _timeProvider.GetUtcNow().UtcDateTime.AddHours(-2), _timeProvider.GetUtcNow().UtcDateTime.AddHours(-1), 10);
+        var message = new BookingRequested(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), 1, timeProvider.GetUtcNow().UtcDateTime);
+        var pastEvent = Event.Create("Прошедшее событие", timeProvider.GetUtcNow().UtcDateTime.AddHours(-2), timeProvider.GetUtcNow().UtcDateTime.AddHours(-1), 10);
 
         processedRepositoryMock
             .Setup(x => x.ExistsAsync(message.MessageId, It.IsAny<CancellationToken>()))
@@ -183,10 +206,13 @@ public class KafkaConsumerTests
         services.AddSingleton(processedRepositoryMock.Object);
         services.AddSingleton(eventRepositoryMock.Object);
         await using var provider = services.BuildServiceProvider();
+        var processor = CreateProcessor(provider, timeProvider);
         using var consumer = new BookingRequestedConsumer(
             provider.GetRequiredService<IServiceScopeFactory>(),
             Options.Create(new KafkaOptions { BootstrapServers = "localhost:9092", ConsumerGroup = "events-tests" }),
-            Mock.Of<ILogger<BookingRequestedConsumer>>(), Mock.Of<ICacheService>(), _timeProvider);
+            Mock.Of<ILogger<BookingRequestedConsumer>>(),
+            processor,
+            timeProvider);
 
         await consumer.HandleMessageAsync(message, CancellationToken.None);
 
@@ -205,12 +231,12 @@ public class KafkaConsumerTests
         var services = new ServiceCollection();
         var processedRepositoryMock = new Mock<IProcessedMessageRepository>();
         var eventRepositoryMock = new Mock<IEventRepository>();
-        FakeTimeProvider _timeProvider = new(new DateTimeOffset(2026, 7, 13, 12, 0, 0, TimeSpan.Zero));
+        FakeTimeProvider timeProvider = new(new DateTimeOffset(2026, 7, 13, 12, 0, 0, TimeSpan.Zero));
 
 
-        var message = new BookingRequested(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), 5, _timeProvider.GetUtcNow().UtcDateTime);
+        var message = new BookingRequested(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), 5, timeProvider.GetUtcNow().UtcDateTime);
         // Событие в будущем, но всего 3 места
-        var futureEvent = Event.Create("Future event", _timeProvider.GetUtcNow().UtcDateTime.AddDays(1), _timeProvider.GetUtcNow().UtcDateTime.AddDays(1).AddHours(2), 3);
+        var futureEvent = Event.Create("Future event", timeProvider.GetUtcNow().UtcDateTime.AddDays(1), timeProvider.GetUtcNow().UtcDateTime.AddDays(1).AddHours(2), 3);
 
         processedRepositoryMock
             .Setup(x => x.ExistsAsync(message.MessageId, It.IsAny<CancellationToken>()))
@@ -222,10 +248,13 @@ public class KafkaConsumerTests
         services.AddSingleton(processedRepositoryMock.Object);
         services.AddSingleton(eventRepositoryMock.Object);
         await using var provider = services.BuildServiceProvider();
+        var processor = CreateProcessor(provider, timeProvider);
         using var consumer = new BookingRequestedConsumer(
             provider.GetRequiredService<IServiceScopeFactory>(),
             Options.Create(new KafkaOptions { BootstrapServers = "localhost:9092", ConsumerGroup = "events-tests" }),
-            Mock.Of<ILogger<BookingRequestedConsumer>>(), Mock.Of<ICacheService>(), _timeProvider);
+            Mock.Of<ILogger<BookingRequestedConsumer>>(),
+            processor,
+            timeProvider);
 
         await consumer.HandleMessageAsync(message, CancellationToken.None);
 
@@ -244,11 +273,11 @@ public class KafkaConsumerTests
         var services = new ServiceCollection();
         var processedRepositoryMock = new Mock<IProcessedMessageRepository>();
         var eventRepositoryMock = new Mock<IEventRepository>();
-        FakeTimeProvider _timeProvider = new(new DateTimeOffset(2026, 7, 13, 12, 0, 0, TimeSpan.Zero));
+        FakeTimeProvider timeProvider = new(new DateTimeOffset(2026, 7, 13, 12, 0, 0, TimeSpan.Zero));
 
 
-        var message = new BookingRequested(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), 2, _timeProvider.GetUtcNow().UtcDateTime);
-        var futureEvent = Event.Create("Future event", _timeProvider.GetUtcNow().UtcDateTime.AddDays(1), _timeProvider.GetUtcNow().UtcDateTime.AddDays(1).AddHours(2), 10);
+        var message = new BookingRequested(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), 2, timeProvider.GetUtcNow().UtcDateTime);
+        var futureEvent = Event.Create("Future event", timeProvider.GetUtcNow().UtcDateTime.AddDays(1), timeProvider.GetUtcNow().UtcDateTime.AddDays(1).AddHours(2), 10);
 
         processedRepositoryMock
             .Setup(x => x.ExistsAsync(message.MessageId, It.IsAny<CancellationToken>()))
@@ -260,10 +289,13 @@ public class KafkaConsumerTests
         services.AddSingleton(processedRepositoryMock.Object);
         services.AddSingleton(eventRepositoryMock.Object);
         await using var provider = services.BuildServiceProvider();
+        var processor = CreateProcessor(provider, timeProvider);
         using var consumer = new BookingRequestedConsumer(
             provider.GetRequiredService<IServiceScopeFactory>(),
             Options.Create(new KafkaOptions { BootstrapServers = "localhost:9092", ConsumerGroup = "events-tests" }),
-            Mock.Of<ILogger<BookingRequestedConsumer>>(), Mock.Of<ICacheService>(), _timeProvider);
+            Mock.Of<ILogger<BookingRequestedConsumer>>(),
+            processor,
+            timeProvider);
 
         await consumer.HandleMessageAsync(message, CancellationToken.None);
 
