@@ -98,6 +98,7 @@ Presentation -> Application -> Domain
 - FluentAssertions
 - Moq
 - Testcontainers for .NET
+- Polly (resilience pipelines для in-place retry)
 
 ## Аутентификация и роли
 
@@ -162,14 +163,15 @@ Kafka используется для межсервисного взаимод�
 1. Чтение из `booking-requested` с `EnableAutoCommit = false`.
 2. Невалидный JSON/пустой payload -> `booking-requested-dlq`.
 3. При `DbUpdateException`:
-   - до `InPlaceRetryCount` быстрых локальных ретраев (exponential delay),
-   - затем публикация `BookingRequestedRetryEnvelope` в `booking-requested-retry`.
+   - in-place retry выполняется через `Polly` (`BookingRequestedDbRetryPolicy`) с exponential backoff и jitter,
+   - после исчерпания локальных попыток сообщение публикуется в `booking-requested-retry`.
 4. `BookingRequestedRetryConsumer` читает `booking-requested-retry`:
    - ждет `NextAttemptAtUtc`,
    - повторно обрабатывает через `BookingRequestedMessageProcessor`.
 5. Если `RetryAttempt >= RetryTopicMaxAttempts` -> сообщение переводится в `booking-requested-dlq`.
 6. Commit offset выполняется только после принятого решения (success/retry/dlq), чтобы исключить потерю сообщений.
-
+`Polly` применяется только для локальных (быстрых) повторов в рамках одного consumer-цикла.
+Отложенные повторы между сообщениями считаются через `NextAttemptAtUtc` и обрабатываются `BookingRequestedRetryConsumer`.
 
 Контракты Kafka лежат в `EventForge.Shared/EventForge.Contract/Brokers`.
 

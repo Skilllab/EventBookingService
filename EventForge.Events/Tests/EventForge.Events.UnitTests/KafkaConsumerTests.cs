@@ -31,6 +31,19 @@ public class KafkaConsumerTests
             Mock.Of<ILogger<BookingRequestedMessageProcessor>>());
     }
 
+    private static BookingRequestedDbRetryPolicy CreateDbRetryPolicy(KafkaOptions? options = null)
+    {
+        return new BookingRequestedDbRetryPolicy(
+            Options.Create(options ?? new KafkaOptions
+            {
+                InPlaceRetryCount = 3,
+                InPlaceRetryBaseDelayMs = 1
+            }),
+            Mock.Of<ILogger<BookingRequestedDbRetryPolicy>>());
+    }
+
+
+
     [Fact]
     public async Task BookingCancelledConsumer_Should_Add_Message_After_Releasing_Seat()
     {
@@ -103,13 +116,16 @@ public class KafkaConsumerTests
         await using var provider = services.BuildServiceProvider();
 
         var processor = CreateProcessor(provider, timeProvider);
+        var retryPolicy = CreateDbRetryPolicy();
+
         using var consumer = new BookingRequestedConsumer(
             provider.GetRequiredService<IServiceScopeFactory>(),
             Options.Create(new KafkaOptions { BootstrapServers = "localhost:9092", ConsumerGroup = "events-tests" }),
             Mock.Of<ILogger<BookingRequestedConsumer>>(),
             processor,
+            retryPolicy,
             timeProvider);
-        
+
         await consumer.HandleMessageAsync(null, CancellationToken.None);
 
         processedRepositoryMock.Verify(x => x.AddAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
@@ -132,12 +148,16 @@ public class KafkaConsumerTests
         services.AddSingleton(processedRepositoryMock.Object);
         services.AddSingleton(eventRepositoryMock.Object);
         await using var provider = services.BuildServiceProvider();
+        
+        var retryPolicy = CreateDbRetryPolicy();
         var processor = CreateProcessor(provider, timeProvider);
+
         using var consumer = new BookingRequestedConsumer(
             provider.GetRequiredService<IServiceScopeFactory>(),
             Options.Create(new KafkaOptions { BootstrapServers = "localhost:9092", ConsumerGroup = "events-tests" }),
             Mock.Of<ILogger<BookingRequestedConsumer>>(),
             processor,
+            retryPolicy,
             timeProvider);
 
         await consumer.HandleMessageAsync(message, CancellationToken.None);
@@ -165,12 +185,16 @@ public class KafkaConsumerTests
         services.AddSingleton(processedRepositoryMock.Object);
         services.AddSingleton(eventRepositoryMock.Object);
         await using var provider = services.BuildServiceProvider();
+
         var processor = CreateProcessor(provider, timeProvider);
+        var retryPolicy = CreateDbRetryPolicy();
+
         using var consumer = new BookingRequestedConsumer(
             provider.GetRequiredService<IServiceScopeFactory>(),
             Options.Create(new KafkaOptions { BootstrapServers = "localhost:9092", ConsumerGroup = "events-tests" }),
             Mock.Of<ILogger<BookingRequestedConsumer>>(),
             processor,
+            retryPolicy,
             timeProvider);
 
         await consumer.HandleMessageAsync(message, CancellationToken.None);
@@ -206,12 +230,16 @@ public class KafkaConsumerTests
         services.AddSingleton(processedRepositoryMock.Object);
         services.AddSingleton(eventRepositoryMock.Object);
         await using var provider = services.BuildServiceProvider();
+
         var processor = CreateProcessor(provider, timeProvider);
+        var retryPolicy = CreateDbRetryPolicy();
+
         using var consumer = new BookingRequestedConsumer(
             provider.GetRequiredService<IServiceScopeFactory>(),
             Options.Create(new KafkaOptions { BootstrapServers = "localhost:9092", ConsumerGroup = "events-tests" }),
             Mock.Of<ILogger<BookingRequestedConsumer>>(),
             processor,
+            retryPolicy,
             timeProvider);
 
         await consumer.HandleMessageAsync(message, CancellationToken.None);
@@ -248,12 +276,16 @@ public class KafkaConsumerTests
         services.AddSingleton(processedRepositoryMock.Object);
         services.AddSingleton(eventRepositoryMock.Object);
         await using var provider = services.BuildServiceProvider();
+
         var processor = CreateProcessor(provider, timeProvider);
+        var retryPolicy = CreateDbRetryPolicy();
+
         using var consumer = new BookingRequestedConsumer(
             provider.GetRequiredService<IServiceScopeFactory>(),
             Options.Create(new KafkaOptions { BootstrapServers = "localhost:9092", ConsumerGroup = "events-tests" }),
             Mock.Of<ILogger<BookingRequestedConsumer>>(),
             processor,
+            retryPolicy,
             timeProvider);
 
         await consumer.HandleMessageAsync(message, CancellationToken.None);
@@ -290,11 +322,14 @@ public class KafkaConsumerTests
         services.AddSingleton(eventRepositoryMock.Object);
         await using var provider = services.BuildServiceProvider();
         var processor = CreateProcessor(provider, timeProvider);
+        var retryPolicy = CreateDbRetryPolicy();
+
         using var consumer = new BookingRequestedConsumer(
             provider.GetRequiredService<IServiceScopeFactory>(),
             Options.Create(new KafkaOptions { BootstrapServers = "localhost:9092", ConsumerGroup = "events-tests" }),
             Mock.Of<ILogger<BookingRequestedConsumer>>(),
             processor,
+            retryPolicy,
             timeProvider);
 
         await consumer.HandleMessageAsync(message, CancellationToken.None);

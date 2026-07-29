@@ -77,6 +77,7 @@ public static class DependencyInjection
         services.AddSingleton<IEventPublisher, KafkaEventPublisher>();
 
         services.AddSingleton<BookingRequestedMessageProcessor>();
+        services.AddSingleton<BookingRequestedDbRetryPolicy>();
 
         services.AddHostedService<BookingRequestedConsumer>();
         services.AddHostedService<BookingCancelledConsumer>();

@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 
 using EventForge.Contract.Brokers;
 using EventForge.Events.Application.Interfaces;
@@ -46,11 +46,20 @@ namespace EventForge.Events.UnitTests
                 time,
                 Mock.Of<ILogger<BookingRequestedMessageProcessor>>());
 
+            var retryPolicy = new BookingRequestedDbRetryPolicy(
+                Options.Create(new KafkaOptions
+                {
+                    InPlaceRetryCount = 0,
+                    InPlaceRetryBaseDelayMs = 1
+                }),
+                Mock.Of<ILogger<BookingRequestedDbRetryPolicy>>());
+
             using var sut = new BookingRequestedConsumer(
                 provider.GetRequiredService<IServiceScopeFactory>(),
                 Options.Create(new KafkaOptions()),
                 Mock.Of<ILogger<BookingRequestedConsumer>>(),
                 processor,
+                retryPolicy,
                 time);
 
             var result = await sut.ProcessPrimaryPayloadAsync("{ not valid json", CancellationToken.None);
@@ -91,16 +100,20 @@ namespace EventForge.Events.UnitTests
                 time,
                 Mock.Of<ILogger<BookingRequestedMessageProcessor>>());
 
-            using var sut = new BookingRequestedConsumer(
-                provider.GetRequiredService<IServiceScopeFactory>(),
+            var retryPolicy = new BookingRequestedDbRetryPolicy(
                 Options.Create(new KafkaOptions
                 {
                     InPlaceRetryCount = 0,
-                    RetryTopicInitialDelaySeconds = 1,
-                    RetryTopicMaxDelaySeconds = 10
+                    InPlaceRetryBaseDelayMs = 1
                 }),
+                Mock.Of<ILogger<BookingRequestedDbRetryPolicy>>());
+
+            using var sut = new BookingRequestedConsumer(
+                provider.GetRequiredService<IServiceScopeFactory>(),
+                Options.Create(new KafkaOptions()),
                 Mock.Of<ILogger<BookingRequestedConsumer>>(),
                 processor,
+                retryPolicy,
                 time);
 
             var msg = new BookingRequested(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), 2, time.GetUtcNow().UtcDateTime);

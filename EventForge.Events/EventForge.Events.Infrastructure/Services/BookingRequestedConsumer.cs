@@ -29,6 +29,7 @@ public class BookingRequestedConsumer(
     IOptions<KafkaOptions> kafkaOptions,
     ILogger<BookingRequestedConsumer> logger,
     BookingRequestedMessageProcessor messageProcessor,
+    BookingRequestedDbRetryPolicy dbRetryPolicy,
     TimeProvider timeProvider) : BackgroundService
 {
     /// <summary>
@@ -111,62 +112,42 @@ public class BookingRequestedConsumer(
             return true;
         }
 
-        var inPlaceCount = Math.Max(0, kafkaOptions.Value.InPlaceRetryCount);
-
-        for (var attempt = 1; ; attempt++)
+        try
         {
-            try
-            {
-                await HandleMessageAsync(message, ct);
-                return true;
-            }
-            catch (DbUpdateException ex) when (attempt <= inPlaceCount)
-            {
-                var delay = CalculateInPlaceDelay(attempt);
-                logger.LogWarning(ex, "Quick retry {Attempt}/{Max} через {DelayMs}ms. MessageId={MessageId}",
-                    attempt, inPlaceCount, delay.TotalMilliseconds, message.MessageId);
+            await dbRetryPolicy.ExecuteAsync(
+                async token => await HandleMessageAsync(message, token),
+                ct);
 
-                await Task.Delay(delay, timeProvider, ct);
-            }
-            catch (DbUpdateException ex)
-            {
-                var now = timeProvider.GetUtcNow().UtcDateTime;
-                var retryEnvelope = new BookingRequestedRetryEnvelope(
-                    message,
-                    RetryAttempt: 1,
-                    FirstFailedAtUtc: now,
-                    NextAttemptAtUtc: now.Add(CalculateRetryDelay(1)),
-                    LastError: ex.Message,
-                    RawPayload: rawPayload);
+            return true;
+        }
+        catch (DbUpdateException ex)
+        {
+            var now = timeProvider.GetUtcNow().UtcDateTime;
+            var retryEnvelope = new BookingRequestedRetryEnvelope(
+                message,
+                RetryAttempt: 1,
+                FirstFailedAtUtc: now,
+                NextAttemptAtUtc: now.Add(CalculateRetryTopicDelay(1)),
+                LastError: ex.Message,
+                RawPayload: rawPayload);
 
-                await PublishRetryAsync(retryEnvelope, ct);
-                return true;
-            }
-            catch (Exception ex)
-            {
-                await PublishDlqAsync(rawPayload, message.MessageId, TopicNames.BookingRequested, attempt - 1, ex.Message, ct);
-                return true;
-            }
+            await PublishRetryAsync(retryEnvelope, ct);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            await PublishDlqAsync(rawPayload, message.MessageId, TopicNames.BookingRequested, 0, ex.Message, ct);
+            return true;
         }
     }
+   
 
     /// <summary>
-    /// Вычисление задержки для повторной попытки обработки сообщения
-    /// </summary>
-    /// <param name="attempt">Номер попытки</param>
-    private TimeSpan CalculateInPlaceDelay(int attempt)
-    {
-        var baseDelayMs = Math.Max(50, kafkaOptions.Value.InPlaceRetryBaseDelayMs);
-        var ms = Math.Min(baseDelayMs * Math.Pow(2, attempt - 1), 5000);
-        return TimeSpan.FromMilliseconds(ms);
-    }
-
-    /// <summary>
-    /// Вычисление задержки для повторной попытки обработки сообщения с использованием экспоненциального 
+    /// Вычисление задержки для повторной попытки обработки сообщения с использованием экспоненциального backoff
     /// </summary>
     /// <param name="retryAttempt">Номер попытки</param>
     /// <returns>Время задержки перед следующей попыткой</returns>
-    private TimeSpan CalculateRetryDelay(int retryAttempt)
+    private TimeSpan CalculateRetryTopicDelay(int retryAttempt)
     {
         var initialSeconds = Math.Max(1, kafkaOptions.Value.RetryTopicInitialDelaySeconds);
         var maxSeconds = Math.Max(initialSeconds, kafkaOptions.Value.RetryTopicMaxDelaySeconds);

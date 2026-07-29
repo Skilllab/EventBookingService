@@ -25,6 +25,7 @@ namespace EventForge.Events.Infrastructure.Services
         IOptions<KafkaOptions> kafkaOptions,
         ILogger<BookingRequestedRetryConsumer> logger,
         BookingRequestedMessageProcessor messageProcessor,
+        BookingRequestedDbRetryPolicy dbRetryPolicy,
         TimeProvider timeProvider) : BackgroundService
     {
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -95,75 +96,59 @@ namespace EventForge.Events.Infrastructure.Services
                 await Task.Delay(envelope.NextAttemptAtUtc - now, timeProvider, ct);
             }
 
-            var inPlaceCount = Math.Max(0, kafkaOptions.Value.InPlaceRetryCount);
-
-            for (var attempt = 1; ; attempt++)
+            try
             {
-                try
-                {
-                    await messageProcessor.ProcessAsync(envelope.Message, ct);
-                    return true;
-                }
-                catch (DbUpdateException ex) when (attempt <= inPlaceCount)
-                {
-                    var delay = CalculateInPlaceDelay(attempt);
-                    logger.LogWarning(ex,
-                        "RetryConsumer quick retry {Attempt}/{Max}. MessageId={MessageId}",
-                        attempt, inPlaceCount, envelope.Message.MessageId);
+                await dbRetryPolicy.ExecuteAsync(
+                    async token => await messageProcessor.ProcessAsync(envelope.Message, token),
+                    ct);
 
-                    await Task.Delay(delay, timeProvider, ct);
-                }
-                catch (DbUpdateException ex)
-                {
-                    var maxAttempts = Math.Max(1, kafkaOptions.Value.RetryTopicMaxAttempts);
+                return true;
+            }
+            catch (DbUpdateException ex)
+            {
+                var maxAttempts = Math.Max(1, kafkaOptions.Value.RetryTopicMaxAttempts);
 
-                    if (envelope.RetryAttempt >= maxAttempts)
-                    {
-                        await PublishDlqAsync(
-                            envelope.RawPayload,
-                            envelope.Message.MessageId,
-                            TopicNames.BookingRequestedRetry,
-                            envelope.RetryAttempt,
-                            $"RetryTopicMaxAttempts exceeded. {ex.Message}",
-                            ct);
-
-                        return true;
-                    }
-
-                    var nextAttempt = envelope.RetryAttempt + 1;
-                    var nextEnvelope = envelope with
-                    {
-                        RetryAttempt = nextAttempt,
-                        LastError = ex.Message,
-                        NextAttemptAtUtc = timeProvider.GetUtcNow().UtcDateTime.Add(CalculateRetryDelay(nextAttempt))
-                    };
-
-                    await PublishRetryAsync(nextEnvelope, ct);
-                    return true;
-                }
-                catch (Exception ex)
+                if (envelope.RetryAttempt >= maxAttempts)
                 {
                     await PublishDlqAsync(
                         envelope.RawPayload,
                         envelope.Message.MessageId,
                         TopicNames.BookingRequestedRetry,
                         envelope.RetryAttempt,
-                        ex.Message,
+                        $"RetryTopicMaxAttempts exceeded. {ex.Message}",
                         ct);
 
                     return true;
                 }
+
+                var nextAttempt = envelope.RetryAttempt + 1;
+                var nextEnvelope = envelope with
+                {
+                    RetryAttempt = nextAttempt,
+                    LastError = ex.Message,
+                    NextAttemptAtUtc = timeProvider.GetUtcNow().UtcDateTime.Add(CalculateRetryTopicDelay(nextAttempt))
+                };
+
+                await PublishRetryAsync(nextEnvelope, ct);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                await PublishDlqAsync(
+                    envelope.RawPayload,
+                    envelope.Message.MessageId,
+                    TopicNames.BookingRequestedRetry,
+                    envelope.RetryAttempt,
+                    ex.Message,
+                    ct);
+
+                return true;
             }
         }
 
-        private TimeSpan CalculateInPlaceDelay(int attempt)
-        {
-            var baseDelayMs = Math.Max(50, kafkaOptions.Value.InPlaceRetryBaseDelayMs);
-            var ms = Math.Min(baseDelayMs * Math.Pow(2, attempt - 1), 5000);
-            return TimeSpan.FromMilliseconds(ms);
-        }
+      
 
-        private TimeSpan CalculateRetryDelay(int retryAttempt)
+        private TimeSpan CalculateRetryTopicDelay(int retryAttempt)
         {
             var initialSeconds = Math.Max(1, kafkaOptions.Value.RetryTopicInitialDelaySeconds);
             var maxSeconds = Math.Max(initialSeconds, kafkaOptions.Value.RetryTopicMaxDelaySeconds);
