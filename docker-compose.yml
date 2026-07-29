@@ -71,11 +71,13 @@ services:
     environment:
       KAFKA_BOOTSTRAP_SERVER: kafka:29092
       KAFKA_TOPICS: >
-        booking-confirmed
-        booking-rejected
-        booking-cancelled
-        booking-not-approved
-        booking-requested
+        booking-confirmed #Топик подтвержденных бронирований
+        booking-rejected #Топик отклоненных бронирований
+        booking-cancelled #Топик отмененных бронирований
+        booking-not-approved #Топик отклоненных бронирований из-за отсутствия мест 
+        booking-requested #Топик запросов на бронирование
+        booking-requested-retry #Топик повторных запросов на бронирование
+        booking-requested-dlq #Топик сообщений, которые не удалось обработать
     command: >
       "
       echo 'Creating Kafka topics...';

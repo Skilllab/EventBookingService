@@ -29,4 +29,15 @@ public static class TopicNames
     /// Топик запросов на бронирование
     /// </summary>
     public const string BookingRequested = "booking-requested";
+
+    /// <summary>
+    /// Топик повторных запросов на бронирование
+    /// </summary>
+    public const string BookingRequestedRetry = "booking-requested-retry";
+
+    /// <summary>
+    /// Топик сообщений, которые не удалось обработать
+    /// </summary>
+    public const string BookingRequestedDlq = "booking-requested-dlq";
+
 }

@@ -75,6 +75,8 @@ Presentation -> Application -> Domain
 - `BookingConfirmedConsumer`
 - `BookingRejectedConsumer`
 - `BookingCancelledConsumer`
+- `BookingRequestedMessageProcessor` — доменная обработка `BookingRequested` (идемпотентность, валидация, outbox)
+- `BookingRequestedRetryConsumer` — обработка `booking-requested-retry` с backoff и лимитом `RetryTopicMaxAttempts`
 
 #### `EventForge.Booking`
 
@@ -153,6 +155,22 @@ Kafka используется для межсервисного взаимод�
 8. Если событие уже началось или мест нет — публикуется `BookingNotApproved`
 9. `Booking` читает `BookingNotApproved` и переводит бронь в `Rejected`
 
+### Resilience потока `BookingRequested` (retry + DLQ)
+
+Для `BookingRequestedConsumer` используется схема отказоустойчивости:
+
+1. Чтение из `booking-requested` с `EnableAutoCommit = false`.
+2. Невалидный JSON/пустой payload -> `booking-requested-dlq`.
+3. При `DbUpdateException`:
+   - до `InPlaceRetryCount` быстрых локальных ретраев (exponential delay),
+   - затем публикация `BookingRequestedRetryEnvelope` в `booking-requested-retry`.
+4. `BookingRequestedRetryConsumer` читает `booking-requested-retry`:
+   - ждет `NextAttemptAtUtc`,
+   - повторно обрабатывает через `BookingRequestedMessageProcessor`.
+5. Если `RetryAttempt >= RetryTopicMaxAttempts` -> сообщение переводится в `booking-requested-dlq`.
+6. Commit offset выполняется только после принятого решения (success/retry/dlq), чтобы исключить потерю сообщений.
+
+
 Контракты Kafka лежат в `EventForge.Shared/EventForge.Contract/Brokers`.
 
 Используемые типы сообщений:
@@ -162,6 +180,8 @@ Kafka используется для межсервисного взаимод�
 - `BookingRejected`
 - `BookingNotApproved`
 - `BookingCancelled`
+- `BookingRequestedRetryEnvelope`
+- `BookingRequestedDlqMessage`
 
 ### Идемпотентность
 
@@ -169,6 +189,8 @@ Kafka используется для межсервисного взаимод�
 - `Booking` также хранит обработанные сообщения в `ProcessedMessages` для защиты от повторной доставки Kafka-сообщений
 - повторная доставка Kafka-сообщения не приводит к повторной обработке
 - публикация в Kafka выполняется через outbox
+- `BookingRequestedMessageProcessor` централизует бизнес-обработку и повторно используется из primary/retry consumer.
+- retry/dlq сообщения также отправляются через outbox, чтобы не терять события при временной недоступности Kafka.
 
 ## Запуск проекта
 
@@ -318,12 +340,14 @@ docker-compose down
 - при старте автоматически применяются EF Core миграции
 - `Booking` и `Events` подключаются к Kafka внутри docker-сети через `kafka:29092`
 - Swagger доступен в окружении `Development` и `Docker`
-- `Kafka-init-topics` автоматически создаёт 5 топиков (1 партиция, replication-factor 1):
- - `booking-requested` — запрос на бронирование от Booking → Events
- - `booking-confirmed` — подтверждение бронирования от Events → Booking
- - `booking-rejected` — отказ (событие не найдено) от Events → Booking
- - `booking-not-approved` — отказ (нет мест / событие началось) от Events → Booking
- - `booking-cancelled` — отмена бронирования от Booking → Events
+- `Kafka-init-topics` автоматически создаёт 7 топиков (1 партиция, replication-factor 1):
+  - `booking-requested` — запрос на бронирование от Booking -> Events
+  - `booking-confirmed` — подтверждение бронирования от Events -> Booking
+  - `booking-rejected` — отказ (событие не найдено) от Events -> Booking
+  - `booking-not-approved` — отказ (нет мест / событие началось) от Events -> Booking
+  - `booking-cancelled` — отмена бронирования от Booking -> Events
+  - `booking-requested-retry` — отложенные повторные попытки обработки `BookingRequested`
+  - `booking-requested-dlq` — сообщения, требующие ручного разбора
 
 ### Доступные порты
 
@@ -357,7 +381,12 @@ dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Host=localhost;Po
 {
   "KafkaOptions": {
     "BootstrapServers": "localhost:9092",
-    "ConsumerGroup": "eventforge-events"
+    "ConsumerGroup": "eventforge-events",
+    "InPlaceRetryCount": 3,
+    "InPlaceRetryBaseDelayMs": 200,
+    "RetryTopicMaxAttempts": 5,
+    "RetryTopicInitialDelaySeconds": 30,
+    "RetryTopicMaxDelaySeconds": 900
   }
 }
 ```
