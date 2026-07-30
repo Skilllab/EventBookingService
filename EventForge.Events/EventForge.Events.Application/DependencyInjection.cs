@@ -1,4 +1,5 @@
 using EventForge.CQRS;
+using EventForge.CQRS.Behaviors;
 using EventForge.Events.Application.CQRS.Commands;
 using EventForge.Events.Application.CQRS.Handlers;
 using EventForge.Events.Application.CQRS.Queries;
@@ -35,6 +36,10 @@ public static class DependencyInjection
         services.AddScoped<IRequestHandler<CancelEventCommand, bool>, CancelEventCommandHandler>();
 
         services.Configure<RedisOptions>(configuration.GetSection(nameof(RedisOptions)));
+
+        services.AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+        services.AddScoped(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
+        services.AddScoped(typeof(IPipelineBehavior<,>), typeof(MetricsBehavior<,>));
 
 
         return services;

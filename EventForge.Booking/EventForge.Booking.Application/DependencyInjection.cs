@@ -6,6 +6,7 @@ using EventForge.Booking.Application.DTO;
 using EventForge.Booking.Application.Interfaces;
 using EventForge.Booking.Application.Services;
 using EventForge.CQRS;
+using EventForge.CQRS.Behaviors;
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -28,6 +29,10 @@ public static class DependencyInjection
         services.AddScoped<IRequestHandler<CancelBookingCommand, bool>, CancelBookingHandler>();
         services.AddScoped<IRequestHandler<GetBookingByIdQuery, BookingInfoDTO>, GetBookingByIdHandler>();
         services.AddScoped<IRequestHandler<GetAllBookingsQuery, List<BookingInfoDTO>>, GetAllBookingsHandler>();
+
+        services.AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+        services.AddScoped(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
+        services.AddScoped(typeof(IPipelineBehavior<,>), typeof(MetricsBehavior<,>));
 
         return services;
     }
