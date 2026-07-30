@@ -175,7 +175,7 @@ services:
   # ===========================================================================
   users_api:
     build:
-      context: .
+      context: ..
       dockerfile: EventForge.Users/dockerfile
     container_name: eventforge_users_api
     restart: unless-stopped
@@ -193,8 +193,8 @@ services:
   # ===========================================================================
   events_api:
     build:
-      context: .
-      dockerfile: EventForge.Events/Dockerfile
+      context: ..
+      dockerfile: EventForge.Events/dockerfile
     container_name: eventforge_events_api
     restart: unless-stopped
     environment:
@@ -217,8 +217,8 @@ services:
   # ===========================================================================
   booking_api:
     build:
-      context: .
-      dockerfile: EventForge.Booking/Dockerfile
+      context: ..
+      dockerfile: EventForge.Booking/dockerfile
     container_name: eventforge_booking_api
     restart: unless-stopped
     environment:

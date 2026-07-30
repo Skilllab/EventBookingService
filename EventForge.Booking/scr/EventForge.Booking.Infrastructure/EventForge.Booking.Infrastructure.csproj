@@ -20,10 +20,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\EventForge.Shared\EventForge.Contract\EventForge.Contract.csproj" />
-    <ProjectReference Include="..\..\EventForge.Shared\EventForge.LoggingDBInterceptor\EventForge.LoggingDBInterceptor.csproj" />
-    <ProjectReference Include="..\..\EventForge.Shared\EventForge.Settings\EventForge.Settings.csproj" />
-    <ProjectReference Include="..\EventForge.Booking.Application\EventForge.Booking.Application.csproj" />
+    <ProjectReference Include="..\..\..\EventForge.Shared\EventForge.Contract\EventForge.Contract.csproj" />
+    <ProjectReference Include="..\..\..\EventForge.Shared\EventForge.LoggingDBInterceptor\EventForge.LoggingDBInterceptor.csproj" />
+    <ProjectReference Include="..\..\..\EventForge.Shared\EventForge.Settings\EventForge.Settings.csproj" />
+    <ProjectReference Include="..\..\scr\EventForge.Booking.Application\EventForge.Booking.Application.csproj" />
   </ItemGroup>
 
 </Project>

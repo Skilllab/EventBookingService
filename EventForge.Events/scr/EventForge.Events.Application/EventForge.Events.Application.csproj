@@ -8,9 +8,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\EventForge.Shared\EventForge.CacheKeys\EventForge.CacheKeys.csproj" />
-    <ProjectReference Include="..\..\EventForge.Shared\EventForge.CQRS\EventForge.CQRS.csproj" />
-    <ProjectReference Include="..\EventForge.Events.Domain\EventForge.Events.Domain.csproj" />
+    <ProjectReference Include="..\..\..\EventForge.Shared\EventForge.CacheKeys\EventForge.CacheKeys.csproj" />
+    <ProjectReference Include="..\..\..\EventForge.Shared\EventForge.CQRS\EventForge.CQRS.csproj" />
+    <ProjectReference Include="..\..\scr\EventForge.Events.Domain\EventForge.Events.Domain.csproj" />
   </ItemGroup>
 
 </Project>

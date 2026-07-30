@@ -15,7 +15,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\EventForge.Booking.Presentation\EventForge.Booking.Presentation.csproj" />
+        <ProjectReference Include="..\..\scr\EventForge.Booking.Presentation\EventForge.Booking.Presentation.csproj" />
     </ItemGroup>
 
     <ItemGroup>

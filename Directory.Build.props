@@ -16,6 +16,9 @@
 
         <!-- Ускорение сборки в Visual Studio -->
         <AccelerateBuildsInVisualStudio>true</AccelerateBuildsInVisualStudio>
+
+        <!-- Указывает создавать obj строго внутри папки самого проекта -->
+        <BaseIntermediateOutputPath>$(MSBuildProjectDirectory)\obj\</BaseIntermediateOutputPath>
     </PropertyGroup>
 
 </Project>

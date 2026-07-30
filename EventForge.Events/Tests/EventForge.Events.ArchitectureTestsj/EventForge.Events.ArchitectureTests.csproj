@@ -12,10 +12,10 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\EventForge.Events.Application\EventForge.Events.Application.csproj" />
-        <ProjectReference Include="..\..\EventForge.Events.Domain\EventForge.Events.Domain.csproj" />
-        <ProjectReference Include="..\..\EventForge.Events.Infrastructure\EventForge.Events.Infrastructure.csproj" />
-        <ProjectReference Include="..\..\EventForge.Events.Presentation\EventForge.Events.Presentation.csproj" />
+        <ProjectReference Include="..\..\scr\EventForge.Events.Application\EventForge.Events.Application.csproj" />
+        <ProjectReference Include="..\..\scr\EventForge.Events.Domain\EventForge.Events.Domain.csproj" />
+        <ProjectReference Include="..\..\scr\EventForge.Events.Infrastructure\EventForge.Events.Infrastructure.csproj" />
+        <ProjectReference Include="..\..\scr\EventForge.Events.Presentation\EventForge.Events.Presentation.csproj" />
     </ItemGroup>
 
     <ItemGroup>

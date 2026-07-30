@@ -21,8 +21,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\EventForge.Shared\EventForge.LoggingDBInterceptor\EventForge.LoggingDBInterceptor.csproj" />
-    <ProjectReference Include="..\..\EventForge.Shared\EventForge.Settings\EventForge.Settings.csproj" />
+    <ProjectReference Include="..\..\..\EventForge.Shared\EventForge.LoggingDBInterceptor\EventForge.LoggingDBInterceptor.csproj" />
+    <ProjectReference Include="..\..\..\EventForge.Shared\EventForge.Settings\EventForge.Settings.csproj" />
     <ProjectReference Include="..\EventForge.Users.Application\EventForge.Users.Application.csproj" />
     <ProjectReference Include="..\EventForge.Users.Domain\EventForge.Users.Domain.csproj" />
   </ItemGroup>

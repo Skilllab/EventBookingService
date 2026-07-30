@@ -8,10 +8,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\EventForge.Shared\EventForge.Contract\EventForge.Contract.csproj" />
-    <ProjectReference Include="..\..\EventForge.Shared\EventForge.CQRS\EventForge.CQRS.csproj" />
-    <ProjectReference Include="..\..\EventForge.Shared\EventForge.Entities\EventForge.Shared.csproj" />
-    <ProjectReference Include="..\EventForge.Booking.Domain\EventForge.Booking.Domain.csproj" />
+    <ProjectReference Include="..\..\..\EventForge.Shared\EventForge.Contract\EventForge.Contract.csproj" />
+    <ProjectReference Include="..\..\..\EventForge.Shared\EventForge.CQRS\EventForge.CQRS.csproj" />
+    <ProjectReference Include="..\..\..\EventForge.Shared\EventForge.Entities\EventForge.Shared.csproj" />
+    <ProjectReference Include="..\..\scr\EventForge.Booking.Domain\EventForge.Booking.Domain.csproj" />
   </ItemGroup>
 
 </Project>

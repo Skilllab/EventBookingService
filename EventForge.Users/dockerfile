@@ -5,10 +5,10 @@ WORKDIR /src
 COPY . .
 
 # Восстанавливаем зависимости для Users.Presentation
-RUN dotnet restore "EventForge.Users/EventForge.Users.Presentation/EventForge.Users.Presentation.csproj"
+RUN dotnet restore "EventForge.Users/scr/EventForge.Users.Presentation/EventForge.Users.Presentation.csproj"
 
 # Публикуем Users.Presentation
-RUN dotnet publish "EventForge.Users/EventForge.Users.Presentation/EventForge.Users.Presentation.csproj" \
+RUN dotnet publish "EventForge.Users/scr/EventForge.Users.Presentation/EventForge.Users.Presentation.csproj" \
     -c Debug \
     -o /app/publish \
     /p:UseAppHost=false

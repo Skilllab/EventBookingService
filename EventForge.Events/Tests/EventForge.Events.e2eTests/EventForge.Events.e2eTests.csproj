@@ -15,7 +15,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\EventForge.Events.Presentation\EventForge.Events.Presentation.csproj" />
+        <ProjectReference Include="..\..\scr\EventForge.Events.Presentation\EventForge.Events.Presentation.csproj" />
     </ItemGroup>
 
     <ItemGroup>

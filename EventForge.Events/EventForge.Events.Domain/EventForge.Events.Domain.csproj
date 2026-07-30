@@ -1,6 +1,0 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-  <ItemGroup>
-    <ProjectReference Include="..\..\EventForge.Shared\EventForge.Entities\EventForge.Shared.csproj" />
-  </ItemGroup>
-
-</Project>

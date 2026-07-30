@@ -15,9 +15,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\EventForge.Users.Application\EventForge.Users.Application.csproj" />
-    <ProjectReference Include="..\..\EventForge.Users.Domain\EventForge.Users.Domain.csproj" />
-    <ProjectReference Include="..\..\EventForge.Users.Infrastructure\EventForge.Users.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\scr\EventForge.Users.Application\EventForge.Users.Application.csproj" />
+    <ProjectReference Include="..\..\scr\EventForge.Users.Domain\EventForge.Users.Domain.csproj" />
+    <ProjectReference Include="..\..\scr\EventForge.Users.Infrastructure\EventForge.Users.Infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>
