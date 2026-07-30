@@ -1,0 +1,21 @@
+<Project>
+
+    <PropertyGroup>
+        <!-- Общие для всех проектов: таргет-фреймворк, неявные using, nullable-контекст -->
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+
+        <!-- Статический анализ кода -->
+        <AnalysisLevel>latest-recommended</AnalysisLevel>
+        <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+
+        <!-- Отладочная информация (portable PDB для всех) -->
+        <DebugType>portable</DebugType>
+        <DebugSymbols>true</DebugSymbols>
+
+        <!-- Ускорение сборки в Visual Studio -->
+        <AccelerateBuildsInVisualStudio>true</AccelerateBuildsInVisualStudio>
+    </PropertyGroup>
+
+</Project>
