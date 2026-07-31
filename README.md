@@ -18,6 +18,7 @@
 - [Технологии](#технологии)
 - [Аутентификация и роли](#аутентификация-и-роли)
 - [CQRS и внутренний Mediator](#cqrs-и-внутренний-mediator)
+- [Валидация и Pipeline Behaviors](#валидация-и-pipeline-behaviors)
 - [Kafka и асинхронные процессы](#kafka-и-асинхронные-процессы)
 - [Запуск проекта](#запуск-проекта)
 - [Наблюдаемость](#наблюдаемость)
@@ -68,25 +69,27 @@ Presentation -> Application -> Domain
 
 #### `EventForge.Events`
 
-- `EventService`
-- `EventRepository`
-- `ProcessedMessageRepository`
-- `BookingRequestedConsumer`
-- `BookingConfirmedConsumer`
-- `BookingRejectedConsumer`
-- `BookingCancelledConsumer`
-- `BookingRequestedMessageProcessor` — доменная обработка `BookingRequested` (идемпотентность, валидация, outbox)
-- `BookingRequestedRetryConsumer` — обработка `booking-requested-retry` с backoff и лимитом `RetryTopicMaxAttempts`
+- `EventService` — бизнес-логика событий
+- `EventRepository` — доступ к БД событий
+- `ProcessedMessageRepository` — дедупликация Kafka-сообщений
+- `BookingRequestedConsumer` — первичная обработка запросов бронирования
+- `BookingRequestedRetryConsumer` — повторная обработка из retry-топика
+- `BookingRequestedMessageProcessor` — ядро бизнес-обработки (переиспользуется primary/retry)
+- `BookingRequestedDbRetryPolicy` — in-place retry с exponential backoff
+- `BookingCancelledConsumer` — освобождение мест при отмене брони
+- `OutboxPublisherBackgroundService` — публикация outbox-сообщений в Kafka
 
 #### `EventForge.Booking`
 
-- `BookingService`
-- `BookingRepository`
-- `OutboxRepository`
-- `BookingBackgroundService`
-- `OutboxPublisherBackgroundService`
-- `KafkaBookingConfirmedPublisher`
-
+- `BookingService` — бизнес-логика бронирования
+- `BookingRepository` — доступ к БД бронирований
+- `OutboxRepository` — управление outbox-сообщениями
+- `ProcessedMessageRepository` — дедупликация входящих Kafka-событий
+- `OutboxPublisherBackgroundService` — публикация outbox в Kafka
+- `KafkaBookingPublisher` — отправка сообщений в Kafka
+- `BookingConfirmedConsumer` — подтверждение брони
+- `BookingRejectedConsumer` — отклонение (событие не найдено)
+- `BookingNotApprovedConsumer` — отклонение (нет мест / началось)
 ## Технологии
 
 - .NET 10
@@ -135,6 +138,22 @@ JWT содержит как минимум:
 - проще тестировать бизнес-сценарии (unit-тесты на handlers);
 - централизованно добавлять cross-cutting логику (валидация, аудит, логирование, pipeline-поведение).
 
+## Валидация и Pipeline Behaviors
+
+Каждый Command/Query проходит через цепочку pipeline-поведений:
+
+1. `ValidationBehavior` — вызывает все реализации `IRequestValidator<TRequest>`
+2. `LoggingBehavior` — логирует start/success/failure
+3. `MetricsBehavior` — пишет метрики `cqrs_requests_total` и `cqrs_request_duration_ms`
+
+Валидаторы:
+- `RegisterUserCommandValidator` — проверяет login (3–64 симв.), password (≥6 симв.), role
+- `LoginUserQueryValidator` — проверяет, что login/password не пустые
+- `CreateEventCommandValidator` — проверяет название, даты (StartAt > now, StartAt < EndAt)
+- `ChangeEventCommandValidator` — проверяет EventId, nullable-поля (StartAt, EndAt, Title)
+- `CreateBookingCommandValidator` — проверяет EventId ≠ Guid.Empty, UserId ≠ Guid.Empty
+- `CancelBookingCommandValidator` — проверяет BookingId ≠ Guid.Empty, UserId ≠ Guid.Empty
+- 
 
 ## Kafka и асинхронные процессы
 
