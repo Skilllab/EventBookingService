@@ -2,6 +2,7 @@ using EventForge.Booking.Application.Common;
 using EventForge.Booking.Application.CQRS.Commands;
 using EventForge.Booking.Application.CQRS.Handlers;
 using EventForge.Booking.Application.CQRS.Queries;
+using EventForge.Booking.Application.CQRS.Validators;
 using EventForge.Booking.Application.DTO;
 using EventForge.Booking.Application.Interfaces;
 using EventForge.Booking.Application.Services;
@@ -33,6 +34,10 @@ public static class DependencyInjection
         services.AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
         services.AddScoped(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
         services.AddScoped(typeof(IPipelineBehavior<,>), typeof(MetricsBehavior<,>));
+
+        services.AddScoped<IRequestValidator<CreateBookingCommand>, CreateBookingCommandValidator>();
+        services.AddScoped<IRequestValidator<CancelBookingCommand>, CancelBookingCommandValidator>();
+
 
         return services;
     }
