@@ -1,4 +1,9 @@
 <Solution>
+  <Folder Name="/docs/" />
+  <Folder Name="/docs/adr/">
+    <File Path="docs/adr/ADR-001-cqrs-mediator.md" />
+    <File Path="docs/adr/ADR-002-resilience-retry-dlq.md" />
+  </Folder>
   <Folder Name="/EventForge.Booking/">
     <File Path="EventForge.Booking/dockerfile" />
     <Project Path="EventForge.Booking/scr/EventForge.Booking.Application/EventForge.Booking.Application.csproj" Id="ccdf35dc-1d26-4810-a6d2-d98444aeac3f" />
