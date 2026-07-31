@@ -1,4 +1,4 @@
-﻿using EventForge.CQRS;
+using EventForge.CQRS;
 using EventForge.Shared.Enums;
 using EventForge.Users.Application.CQRS.Commands;
 using EventForge.Users.Domain.Exceptions;
@@ -6,7 +6,7 @@ using EventForge.Users.Domain.Exceptions;
 namespace EventForge.Users.Application.CQRS.Validators;
 
 /// <summary>
-/// Валидация команды регистрации пользователя на уровне Application.
+/// Валидация команды регистрации пользователя на уровне Application
 /// </summary>
 public sealed class RegisterUserCommandValidator : IRequestValidator<RegisterUserCommand>
 {

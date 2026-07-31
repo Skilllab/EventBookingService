@@ -30,6 +30,7 @@ public static class DependencyInjection
         services.AddScoped(typeof(IPipelineBehavior<,>), typeof(MetricsBehavior<,>));
 
         services.AddScoped<IRequestValidator<RegisterUserCommand>, RegisterUserCommandValidator>();
+        services.AddScoped<IRequestValidator<LoginUserQuery>, LoginUserQueryValidator>();
 
 
         return services;
