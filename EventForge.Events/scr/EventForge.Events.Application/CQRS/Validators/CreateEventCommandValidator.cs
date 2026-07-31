@@ -7,7 +7,7 @@ namespace EventForge.Events.Application.CQRS.Validators;
 /// <summary>
 /// Валидация команды создания события
 /// </summary>
-internal class CreateEventCommandValidator(TimeProvider timeProvider) : IRequestValidator<CreateEventCommand>
+public sealed class CreateEventCommandValidator(TimeProvider timeProvider) : IRequestValidator<CreateEventCommand>
 {
     public void Validate(CreateEventCommand request)
     {

@@ -1,5 +1,3 @@
-using System.ComponentModel.DataAnnotations;
-
 using EventForge.Booking.Application.CQRS.Commands;
 using EventForge.Booking.Domain.Exceptions;
 using EventForge.CQRS;
