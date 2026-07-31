@@ -101,7 +101,8 @@ public class BookingRejectedConsumer(
         {
             BootstrapServers = kafkaOptions.Value.BootstrapServers,
             GroupId = kafkaOptions.Value.ConsumerGroup,
-            AutoOffsetReset = AutoOffsetReset.Earliest
+            AutoOffsetReset = AutoOffsetReset.Earliest,
+            EnableAutoCommit = false
         };
 
         using var consumer = new ConsumerBuilder<string, string>(config).Build();
