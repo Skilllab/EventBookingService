@@ -3,6 +3,7 @@ using EventForge.CQRS.Behaviors;
 using EventForge.Events.Application.CQRS.Commands;
 using EventForge.Events.Application.CQRS.Handlers;
 using EventForge.Events.Application.CQRS.Queries;
+using EventForge.Events.Application.CQRS.Validators;
 using EventForge.Events.Application.DTO;
 using EventForge.Events.Application.Entities;
 using EventForge.Events.Application.Interfaces;
@@ -41,6 +42,8 @@ public static class DependencyInjection
         services.AddScoped(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
         services.AddScoped(typeof(IPipelineBehavior<,>), typeof(MetricsBehavior<,>));
 
+        services.AddScoped<IRequestValidator<CreateEventCommand>, CreateEventCommandValidator>();
+        services.AddScoped<IRequestValidator<ChangeEventCommand>, ChangeEventCommandValidator>();
 
         return services;
     }
