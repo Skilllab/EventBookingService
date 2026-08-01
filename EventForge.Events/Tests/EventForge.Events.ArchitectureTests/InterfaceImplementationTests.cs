@@ -1,3 +1,5 @@
+using System;
+using System.Linq;
 using System.Reflection;
 
 using FluentAssertions;
@@ -5,6 +7,8 @@ using FluentAssertions;
 using MediatR;
 
 using NetArchTest.Rules;
+
+using Xunit;
 
 namespace EventForge.Events.ArchitectureTests;
 

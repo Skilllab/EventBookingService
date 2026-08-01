@@ -1,3 +1,6 @@
+using System;
+using System.Threading.Tasks;
+
 namespace EventForge.Events.Application.Interfaces;
 
 public interface ICacheService

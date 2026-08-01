@@ -1,3 +1,5 @@
+using System.Threading.Tasks;
+
 using EventForge.Users.Domain.Entities;
 
 namespace EventForge.Users.Application.Interfaces;

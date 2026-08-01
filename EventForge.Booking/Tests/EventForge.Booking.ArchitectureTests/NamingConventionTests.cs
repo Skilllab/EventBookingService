@@ -4,6 +4,8 @@ using FluentAssertions;
 
 using NetArchTest.Rules;
 
+using Xunit;
+
 namespace EventForge.Booking.ArchitectureTests;
 
 /// <summary>

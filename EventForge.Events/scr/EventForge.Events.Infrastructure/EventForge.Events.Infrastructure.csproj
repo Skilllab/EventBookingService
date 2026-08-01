@@ -19,6 +19,10 @@
         <PackageReference Include="OpenTelemetry.Instrumentation.Http" />
         <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" />
         <PackageReference Include="OpenTelemetry.Exporter.Prometheus.AspNetCore" />
+
+        <PackageReference Include="AspNetCore.HealthChecks.NpgSql" />
+        <PackageReference Include="AspNetCore.HealthChecks.Redis" />
+        <PackageReference Include="AspNetCore.HealthChecks.Kafka" />
     </ItemGroup>
 
     <ItemGroup>

@@ -1,4 +1,7 @@
+using System;
 using System.ComponentModel.DataAnnotations;
+using System.Threading;
+using System.Threading.Tasks;
 
 using EventForge.Booking.Application.CQRS.Commands;
 using EventForge.Booking.Application.CQRS.Queries;
@@ -7,7 +10,9 @@ using EventForge.Shared.Constants;
 using EventForge.Shared.Enums;
 
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.JsonWebTokens;
 
 using Swashbuckle.AspNetCore.Annotations;

@@ -1,3 +1,5 @@
+using System;
+
 using EventForge.Shared.Enums;
 
 namespace EventForge.Users.Infrastructure.Entities;

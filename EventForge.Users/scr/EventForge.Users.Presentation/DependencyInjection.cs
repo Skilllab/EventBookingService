@@ -1,3 +1,4 @@
+using System;
 using System.Text;
 
 using EventForge.ExceptionMiddleware;
@@ -7,7 +8,10 @@ using EventForge.Swagger;
 using EventForge.Users.Domain.Exceptions;
 
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 
 namespace EventForge.Users.Presentation;

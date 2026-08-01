@@ -1,6 +1,10 @@
+using System.Threading.Tasks;
+
 using FluentAssertions;
 
 using Microsoft.EntityFrameworkCore;
+
+using Xunit;
 
 namespace EventForge.Events.IntegrationTests;
 

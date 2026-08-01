@@ -1,3 +1,5 @@
+using System;
+
 using EventForge.Behaviors.Behaviors;
 
 using MediatR;

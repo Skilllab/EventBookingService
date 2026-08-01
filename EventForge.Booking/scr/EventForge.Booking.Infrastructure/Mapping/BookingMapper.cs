@@ -1,3 +1,5 @@
+using System;
+
 using EventForge.Booking.Domain.Entities;
 using EventForge.Booking.Infrastructure.Entities;
 

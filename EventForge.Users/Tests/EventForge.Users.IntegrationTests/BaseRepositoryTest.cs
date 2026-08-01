@@ -1,3 +1,5 @@
+using System.Threading.Tasks;
+
 using EventForge.Users.Infrastructure.Context;
 
 using Microsoft.EntityFrameworkCore;
@@ -6,6 +8,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
 
 using Testcontainers.PostgreSql;
+
+using Xunit;
 
 namespace EventForge.Users.IntegrationTests;
 

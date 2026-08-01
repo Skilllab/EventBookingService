@@ -1,4 +1,6 @@
+using System;
 using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
 
 using EventForge.Settings.JWT;
 using EventForge.Users.Infrastructure.Services;
@@ -7,6 +9,8 @@ using FluentAssertions;
 
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Time.Testing;
+
+using Xunit;
 
 namespace EventForge.Users.UnitTests;
 

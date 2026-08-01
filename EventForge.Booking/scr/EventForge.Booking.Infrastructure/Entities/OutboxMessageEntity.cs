@@ -1,3 +1,5 @@
+using System;
+
 namespace EventForge.Booking.Infrastructure.Entities;
 
 /// <summary>

@@ -1,3 +1,6 @@
+using System;
+using System.Threading.Tasks;
+
 using EventForge.Shared.Enums;
 using EventForge.Users.Domain.Entities;
 using EventForge.Users.Infrastructure.Entities;
@@ -6,6 +9,8 @@ using EventForge.Users.Infrastructure.Repositories;
 using FluentAssertions;
 
 using Microsoft.EntityFrameworkCore;
+
+using Xunit;
 
 namespace EventForge.Users.IntegrationTests;
 

@@ -1,3 +1,5 @@
+using System;
+
 namespace EventForge.CacheKeys;
 
 public static class KeysForEvents

@@ -1,8 +1,12 @@
+using System;
+using System.Linq;
 using System.Reflection;
 
 using FluentAssertions;
 
 using NetArchTest.Rules;
+
+using Xunit;
 
 namespace EventForge.Users.ArchitectureTests;
 

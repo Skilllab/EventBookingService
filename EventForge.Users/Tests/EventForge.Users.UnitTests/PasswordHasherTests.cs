@@ -1,6 +1,10 @@
+using System;
+
 using EventForge.Users.Infrastructure.Services;
 
 using FluentAssertions;
+
+using Xunit;
 
 namespace EventForge.Users.UnitTests;
 

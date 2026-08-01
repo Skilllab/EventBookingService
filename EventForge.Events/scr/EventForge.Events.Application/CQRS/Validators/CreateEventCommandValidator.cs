@@ -1,3 +1,5 @@
+using System;
+
 using EventForge.Events.Application.CQRS.Commands;
 
 using FluentValidation;

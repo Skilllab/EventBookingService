@@ -1,9 +1,13 @@
+using System;
+
 using EventForge.Users.Application.CQRS.Commands;
 using EventForge.Users.Application.CQRS.Queries;
 using EventForge.Users.Application.CQRS.Validators;
 using EventForge.Users.Domain.Exceptions;
 
 using FluentAssertions;
+
+using Xunit;
 
 namespace EventForge.Users.UnitTests;
 

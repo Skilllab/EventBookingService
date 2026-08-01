@@ -1,5 +1,8 @@
+using System.Collections.Generic;
 using System.Net;
+using System.Net.Http;
 using System.Net.Http.Json;
+using System.Threading.Tasks;
 
 using EventForge.Users.Infrastructure.Context;
 using EventForge.Users.Presentation.DTO;
@@ -13,6 +16,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 using Testcontainers.PostgreSql;
+
+using Xunit;
 
 namespace EventForge.Users.e2eTests;
 

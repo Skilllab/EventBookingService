@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+
 using EventForge.Booking.Application.DTO;
 using MediatR;
 using EventForge.Shared.Enums;

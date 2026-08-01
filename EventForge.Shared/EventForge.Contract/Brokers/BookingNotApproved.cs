@@ -1,3 +1,5 @@
+using System;
+
 using EventForge.Contract.Enums;
 
 namespace EventForge.Contract.Brokers;

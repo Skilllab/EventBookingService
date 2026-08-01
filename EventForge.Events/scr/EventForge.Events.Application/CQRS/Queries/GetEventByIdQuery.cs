@@ -1,3 +1,5 @@
+using System;
+
 using MediatR;
 
 using EventForge.Events.Application.DTO;

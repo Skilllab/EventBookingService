@@ -1,3 +1,5 @@
+using System.Linq;
+
 using EventForge.Events.Application.DTO;
 using EventForge.Events.Presentation.DTO;
 

@@ -1,3 +1,7 @@
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+
 using Confluent.Kafka;
 
 using EventForge.Booking.Application.Interfaces;
@@ -13,6 +17,8 @@ using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Time.Testing;
 
 using Moq;
+
+using Xunit;
 
 namespace EventForge.Booking.UnitTests;
 

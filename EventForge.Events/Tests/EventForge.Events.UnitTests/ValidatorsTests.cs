@@ -1,3 +1,5 @@
+using System;
+
 using EventForge.Events.Application.CQRS.Commands;
 using EventForge.Events.Application.CQRS.Validators;
 using EventForge.Events.Application.DTO;
@@ -6,6 +8,8 @@ using EventForge.Events.Domain.Exceptions;
 using FluentAssertions;
 
 using Microsoft.Extensions.Time.Testing;
+
+using Xunit;
 
 namespace EventForge.Events.UnitTests;
 

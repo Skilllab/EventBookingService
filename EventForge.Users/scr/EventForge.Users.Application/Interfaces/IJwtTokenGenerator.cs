@@ -1,3 +1,5 @@
+using System;
+
 namespace EventForge.Users.Application.Interfaces;
 
 /// <summary>

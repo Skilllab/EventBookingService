@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace EventForge.Events.Domain.Entities;
 
 /// <summary>

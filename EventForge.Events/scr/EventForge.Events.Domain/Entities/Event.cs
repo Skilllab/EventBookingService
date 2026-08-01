@@ -1,3 +1,5 @@
+using System;
+
 using EventForge.Events.Domain.Exceptions;
 
 namespace EventForge.Events.Domain.Entities;

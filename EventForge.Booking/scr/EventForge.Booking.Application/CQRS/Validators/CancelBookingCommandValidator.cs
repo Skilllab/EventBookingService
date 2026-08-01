@@ -1,3 +1,5 @@
+using System;
+
 using EventForge.Booking.Application.CQRS.Commands;
 
 using FluentValidation;

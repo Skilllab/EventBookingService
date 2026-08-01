@@ -1,3 +1,6 @@
+using System;
+using System.Threading.Tasks;
+
 using Microsoft.AspNetCore.Http; // Для HttpContext и WriteAsJsonAsync
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging;

@@ -1,3 +1,5 @@
+using System;
+
 using EventForge.Shared.Enums;
 using EventForge.Users.Application.CQRS.Commands;
 

@@ -1,3 +1,5 @@
+using System.Threading.Tasks;
+
 using Asp.Versioning;
 
 using MediatR;
@@ -7,7 +9,9 @@ using EventForge.Users.Application.CQRS.Queries;
 using EventForge.Users.Presentation.DTO;
 
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 
 using Swashbuckle.AspNetCore.Annotations;
 

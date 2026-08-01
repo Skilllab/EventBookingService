@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+
 using EventForge.Behaviors.Behaviors;
 using EventForge.Booking.Application.Common;
 using EventForge.Booking.Application.CQRS.Commands;

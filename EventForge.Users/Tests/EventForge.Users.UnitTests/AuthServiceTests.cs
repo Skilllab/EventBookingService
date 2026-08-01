@@ -1,3 +1,6 @@
+using System;
+using System.Threading.Tasks;
+
 using EventForge.Shared.Enums;
 using EventForge.Users.Application.Interfaces;
 using EventForge.Users.Application.Services;
@@ -6,6 +9,8 @@ using EventForge.Users.Domain.Entities;
 using FluentAssertions;
 
 using Moq;
+
+using Xunit;
 
 namespace EventForge.Users.UnitTests;
 

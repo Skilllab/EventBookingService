@@ -1,3 +1,5 @@
+using System;
+
 using EventForge.Events.Presentation.ValidationAttributes;
 
 namespace EventForge.Events.Presentation.DTO;

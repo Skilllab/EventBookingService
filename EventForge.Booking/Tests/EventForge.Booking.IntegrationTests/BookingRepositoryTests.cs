@@ -1,3 +1,7 @@
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+
 using EventForge.Booking.Domain.Entities;
 using EventForge.Booking.Infrastructure.Mapping;
 using EventForge.Booking.Infrastructure.Repositories;
@@ -6,6 +10,8 @@ using EventForge.Contract.Brokers;
 using FluentAssertions;
 
 using Microsoft.EntityFrameworkCore;
+
+using Xunit;
 
 namespace EventForge.Booking.IntegrationTests;
 

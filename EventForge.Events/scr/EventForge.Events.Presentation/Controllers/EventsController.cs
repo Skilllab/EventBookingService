@@ -1,4 +1,7 @@
+using System;
 using System.ComponentModel.DataAnnotations;
+using System.Threading;
+using System.Threading.Tasks;
 
 using MediatR;
 
@@ -10,7 +13,9 @@ using EventForge.Shared.Constants;
 using EventForge.Shared.Enums;
 
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 
 using Swashbuckle.AspNetCore.Annotations;
 
