@@ -31,7 +31,7 @@ public class BackgroundAndKafkaTests
         // Arrange
         var producerMock = new Mock<IProducer<string, string>>();
         var loggerMock = new Mock<ILogger<KafkaBookingPublisher>>();
-        using var publisher = new KafkaBookingPublisher(producerMock.Object, loggerMock.Object);
+        using var publisher = new KafkaBookingPublisher(producerMock.Object, loggerMock.Object, Mock.Of<KafkaMetrics>());
 
         const string topic = TopicNames.BookingConfirmed;
         const string key = "event-key";
@@ -78,7 +78,7 @@ public class BackgroundAndKafkaTests
         using var consumer = new BookingConfirmedConsumer(
             provider.GetRequiredService<IServiceScopeFactory>(),
             Options.Create(new KafkaOptions { BootstrapServers = "localhost:9092", ConsumerGroup = "booking-tests" }),
-            Mock.Of<ILogger<BookingConfirmedConsumer>>());
+            Mock.Of<ILogger<BookingConfirmedConsumer>>(), Mock.Of<KafkaMetrics>());
 
         await CallHandleMessageAsync<BookingConfirmed, BookingConfirmedConsumer>(consumer, message, CancellationToken.None);
 
@@ -106,7 +106,7 @@ public class BackgroundAndKafkaTests
         using var consumer = new BookingConfirmedConsumer(
             provider.GetRequiredService<IServiceScopeFactory>(),
             Options.Create(new KafkaOptions { BootstrapServers = "localhost:9092", ConsumerGroup = "booking-tests" }),
-            Mock.Of<ILogger<BookingConfirmedConsumer>>());
+            Mock.Of<ILogger<BookingConfirmedConsumer>>(), Mock.Of<KafkaMetrics>());
 
         await CallHandleMessageAsync<BookingConfirmed, BookingConfirmedConsumer>(consumer, message, CancellationToken.None);
 
@@ -134,7 +134,7 @@ public class BackgroundAndKafkaTests
         using var consumer = new BookingConfirmedConsumer(
             provider.GetRequiredService<IServiceScopeFactory>(),
             Options.Create(new KafkaOptions { BootstrapServers = "localhost:9092", ConsumerGroup = "booking-tests" }),
-            Mock.Of<ILogger<BookingConfirmedConsumer>>());
+            Mock.Of<ILogger<BookingConfirmedConsumer>>(), Mock.Of<KafkaMetrics>());
 
         await CallHandleMessageAsync<BookingConfirmed, BookingConfirmedConsumer>(consumer, message, CancellationToken.None);
 
@@ -165,7 +165,7 @@ public class BackgroundAndKafkaTests
         using var consumer = new BookingConfirmedConsumer(
             provider.GetRequiredService<IServiceScopeFactory>(),
             Options.Create(new KafkaOptions { BootstrapServers = "localhost:9092", ConsumerGroup = "booking-tests" }),
-            Mock.Of<ILogger<BookingConfirmedConsumer>>());
+            Mock.Of<ILogger<BookingConfirmedConsumer>>(), Mock.Of<KafkaMetrics>());
 
         await CallHandleMessageAsync<BookingConfirmed, BookingConfirmedConsumer>(consumer, message, CancellationToken.None);
 
@@ -197,7 +197,8 @@ public class BackgroundAndKafkaTests
         using var consumer = new BookingRejectedConsumer(
             provider.GetRequiredService<IServiceScopeFactory>(),
             Options.Create(new KafkaOptions { BootstrapServers = "localhost:9092", ConsumerGroup = "booking-tests" }),
-            Mock.Of<ILogger<BookingRejectedConsumer>>());
+            Mock.Of<ILogger<BookingRejectedConsumer>>(),
+            Mock.Of<KafkaMetrics>());
 
         await CallHandleMessageAsync<BookingRejected, BookingRejectedConsumer>(consumer, message, CancellationToken.None);
 
@@ -229,7 +230,8 @@ public class BackgroundAndKafkaTests
         using var consumer = new BookingNotApprovedConsumer(
             provider.GetRequiredService<IServiceScopeFactory>(),
             Options.Create(new KafkaOptions { BootstrapServers = "localhost:9092", ConsumerGroup = "booking-tests" }),
-            Mock.Of<ILogger<BookingNotApprovedConsumer>>());
+            Mock.Of<ILogger<BookingNotApprovedConsumer>>(),
+            Mock.Of<KafkaMetrics>());
 
         await CallHandleMessageAsync<BookingNotApproved, BookingNotApprovedConsumer>(consumer, message, CancellationToken.None);
 

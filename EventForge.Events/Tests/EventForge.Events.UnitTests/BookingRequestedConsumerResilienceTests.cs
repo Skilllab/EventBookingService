@@ -49,7 +49,7 @@ namespace EventForge.Events.UnitTests
                 provider.GetRequiredService<IServiceScopeFactory>(),
                 cacheMock.Object,
                 time,
-                Mock.Of<ILogger<BookingRequestedMessageProcessor>>());
+                Mock.Of<ILogger<BookingRequestedMessageProcessor>>(), Mock.Of<KafkaMetrics>());
 
             var retryPolicy = new BookingRequestedDbRetryPolicy(
                 Options.Create(new KafkaOptions
@@ -65,7 +65,7 @@ namespace EventForge.Events.UnitTests
                 Mock.Of<ILogger<BookingRequestedConsumer>>(),
                 processor,
                 retryPolicy,
-                time);
+                time, Mock.Of<KafkaMetrics>());
 
             var result = await sut.ProcessPrimaryPayloadAsync("{ not valid json", CancellationToken.None);
 
@@ -103,7 +103,8 @@ namespace EventForge.Events.UnitTests
                 provider.GetRequiredService<IServiceScopeFactory>(),
                 cacheMock.Object,
                 time,
-                Mock.Of<ILogger<BookingRequestedMessageProcessor>>());
+                Mock.Of<ILogger<BookingRequestedMessageProcessor>>(),
+                Mock.Of<KafkaMetrics>());
 
             var retryPolicy = new BookingRequestedDbRetryPolicy(
                 Options.Create(new KafkaOptions
@@ -119,7 +120,7 @@ namespace EventForge.Events.UnitTests
                 Mock.Of<ILogger<BookingRequestedConsumer>>(),
                 processor,
                 retryPolicy,
-                time);
+                time, Mock.Of<KafkaMetrics>());
 
             var msg = new BookingRequested(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), 2, time.GetUtcNow().UtcDateTime);
             var raw = JsonSerializer.Serialize(msg);

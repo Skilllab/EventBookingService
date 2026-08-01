@@ -33,7 +33,8 @@ public class BookingRequestedConsumer(
     ILogger<BookingRequestedConsumer> logger,
     BookingRequestedMessageProcessor messageProcessor,
     BookingRequestedDbRetryPolicy dbRetryPolicy,
-    TimeProvider timeProvider) : BackgroundService
+    TimeProvider timeProvider,
+    KafkaMetrics metrics) : BackgroundService
 {
     /// <summary>
     /// Обработка сообщений о запросах на бронирование
@@ -64,9 +65,16 @@ public class BookingRequestedConsumer(
         {
             try
             {
+                var sw = Stopwatch.StartNew();
+
+
                 var consumeResult = consumer.Consume(stoppingToken);
                 if (consumeResult?.Message?.Value == null)
                     continue;
+
+                // RED: сообщение потреблено
+                metrics.ConsumedMessages.Add(1);
+
 
                 var parent = KafkaTraceContext.ExtractFromHeaders(consumeResult.Message.Headers);
                 using var activity = KafkaTraceContext.Source.StartActivity("kafka consume booking-requested", ActivityKind.Consumer, parent);
@@ -78,6 +86,10 @@ public class BookingRequestedConsumer(
                 var shouldCommit = await ProcessPrimaryPayloadAsync(consumeResult.Message.Value, stoppingToken);
                 if (shouldCommit)
                     consumer.Commit(consumeResult);
+
+                sw.Stop();
+                // RED: длительность
+                metrics.ConsumerDuration.Record(sw.Elapsed.TotalSeconds);  
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {
@@ -85,6 +97,9 @@ public class BookingRequestedConsumer(
             }
             catch (Exception ex)
             {
+                // RED: ошибка
+                metrics.ConsumerErrors.Add(1);
+
                 logger.LogError(ex, "Ошибка при обработке сообщения BookingRequested");
             }
         }

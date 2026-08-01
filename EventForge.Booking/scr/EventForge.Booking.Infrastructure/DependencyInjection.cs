@@ -68,6 +68,7 @@ public static class DependencyInjection
                 metrics
                     .AddAspNetCoreInstrumentation()
                     .AddRuntimeInstrumentation()
+                    .AddMeter("EventForge.Booking.Kafka")
                     .AddPrometheusExporter();
             });
 
@@ -90,6 +91,7 @@ public static class DependencyInjection
 
         // Kafka publisher (Singleton — продюсер переиспользуется)
         services.AddSingleton<IBookingPublisher, KafkaBookingPublisher>();
+        services.AddSingleton<KafkaMetrics>();
 
         // Фоновая публикация сообщений из outbox
         services.AddHostedService<OutboxPublisherBackgroundService>();

@@ -25,7 +25,8 @@ namespace EventForge.Events.Infrastructure.Services
         IServiceScopeFactory scopeFactory,
         ICacheService cache,
         TimeProvider timeProvider,
-        ILogger<BookingRequestedMessageProcessor> logger)
+        ILogger<BookingRequestedMessageProcessor> logger,
+        KafkaMetrics metrics)
     {
         /// <summary>
         /// Обработка сообщения о запросе на бронирование
@@ -42,6 +43,8 @@ namespace EventForge.Events.Infrastructure.Services
                 logger.LogWarning("Получено пустое или невалидное сообщение BookingRequested");
                 return;
             }
+            // БИЗНЕС-МЕТРИКА: получен запрос на бронирование
+            metrics.BookingRequestsReceived.Add(1);
 
             await using var scope = scopeFactory.CreateAsyncScope();
             var processedRepository =
@@ -63,6 +66,10 @@ namespace EventForge.Events.Infrastructure.Services
                 await eventRepository.AddOutboxAsync(outboxRejected, stoppingToken);
                 await processedRepository.AddAsync(message.MessageId, nameof(BookingRejected),
                     stoppingToken);
+
+                // БИЗНЕС-МЕТРИКА: запрос отклонён (событие не найдено)
+                metrics.BookingRequestsRejected.Add(1);
+
                 return;
             }
 
@@ -77,6 +84,10 @@ namespace EventForge.Events.Infrastructure.Services
                 await eventRepository.AddOutboxAsync(outboxNotApproved, stoppingToken);
                 await processedRepository.AddAsync(message.MessageId, nameof(BookingNotApproved),
                     stoppingToken);
+                
+                // БИЗНЕС-МЕТРИКА: не одобрено (событие началось)
+                metrics.BookingRequestsNotApproved.Add(1);
+
                 return;
             }
 
@@ -91,6 +102,10 @@ namespace EventForge.Events.Infrastructure.Services
                 await eventRepository.AddOutboxAsync(outboxNotApproved, stoppingToken);
                 await processedRepository.AddAsync(message.MessageId, nameof(BookingNotApproved),
                     stoppingToken);
+
+                // БИЗНЕС-МЕТРИКА: не одобрено (нет мест)
+                metrics.BookingRequestsNotApproved.Add(1);
+
                 return;
             }
 
@@ -104,6 +119,10 @@ namespace EventForge.Events.Infrastructure.Services
                 stoppingToken);
             await processedRepository.AddAsync(message.MessageId, nameof(BookingConfirmed),
                 stoppingToken);
+
+            // БИЗНЕС-МЕТРИКИ: подтверждено + места зарезервированы
+            metrics.BookingRequestsConfirmed.Add(1);
+            metrics.SeatsReserved.Add(message.SeatsCount);
 
             await cache.RemoveAsync(KeysForEvents.ForEvent(message.EventId));
             await cache.RemoveAsync(KeysForEvents.TopEvents);

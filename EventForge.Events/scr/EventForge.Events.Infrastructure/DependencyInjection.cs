@@ -67,6 +67,7 @@ public static class DependencyInjection
                 metrics
                     .AddAspNetCoreInstrumentation()
                     .AddRuntimeInstrumentation()
+                    .AddMeter("EventForge.Events.Kafka")
                     .AddPrometheusExporter();
             });
 
@@ -86,6 +87,8 @@ public static class DependencyInjection
         services.AddScoped<IOutboxRepository, OutboxRepository>();
 
         services.AddSingleton<IEventPublisher, KafkaEventPublisher>();
+        services.AddSingleton<KafkaMetrics>();
+
 
         services.AddSingleton<BookingRequestedMessageProcessor>();
         services.AddSingleton<BookingRequestedDbRetryPolicy>();

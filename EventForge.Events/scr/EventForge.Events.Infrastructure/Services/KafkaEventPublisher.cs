@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -19,12 +20,16 @@ public sealed class KafkaEventPublisher : IEventPublisher, IDisposable
 {
     private readonly IProducer<string, string> _producer;
     private readonly ILogger<KafkaEventPublisher> _logger;
+    private readonly KafkaMetrics _metrics;
+
 
     public KafkaEventPublisher(
         IOptions<KafkaOptions> options,
-        ILogger<KafkaEventPublisher> logger)
+        ILogger<KafkaEventPublisher> logger,
+        KafkaMetrics metrics)
     {
         _logger = logger;
+        _metrics = metrics;
 
         var config = new ProducerConfig
         {
@@ -37,16 +42,19 @@ public sealed class KafkaEventPublisher : IEventPublisher, IDisposable
     //Для тестовых целей, чтобы проверить, что событие отправляется в кафку
     public KafkaEventPublisher(
         IProducer<string, string> producer,
-        ILogger<KafkaEventPublisher> logger)
+        ILogger<KafkaEventPublisher> logger, KafkaMetrics metrics)
     {
         _producer = producer;
         _logger = logger;
+        _metrics = metrics;
     }
 
     public async Task PublishRawAsync(string topic, string key, string payload, CancellationToken ct)
     {
         var headers = new Headers();
         KafkaTraceContext.InjectCurrentContext(headers);
+
+        var sw = Stopwatch.StartNew();
 
         await _producer.ProduceAsync(
             topic,
@@ -56,6 +64,13 @@ public sealed class KafkaEventPublisher : IEventPublisher, IDisposable
                 Value = payload
             },
             ct);
+
+        sw.Stop();
+        // RED: длительность
+        _metrics.PublishDuration.Record(sw.Elapsed.TotalSeconds);
+        // RED: сообщение опубликовано
+        _metrics.PublishedMessages.Add(1);                         
+
 
         _logger.LogInformation("Сообщение опубликовано в Kafka. Topic={Topic}, Key={Key}", topic, key);
     }

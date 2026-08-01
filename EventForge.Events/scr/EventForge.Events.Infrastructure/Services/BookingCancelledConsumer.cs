@@ -21,7 +21,8 @@ namespace EventForge.Events.Infrastructure.Services;
 public class BookingCancelledConsumer(
     IServiceScopeFactory scopeFactory,
     IOptions<KafkaOptions> kafkaOptions,
-    ILogger<BookingCancelledConsumer> logger) : BackgroundService
+    ILogger<BookingCancelledConsumer> logger,
+    KafkaMetrics metrics) : BackgroundService
 {
     public async Task HandleMessageAsync(BookingCancelled? message, CancellationToken stoppingToken)
     {
@@ -39,6 +40,10 @@ public class BookingCancelledConsumer(
         try
         {
             await eventService.ReleaseSeatAsync(message.EventId, stoppingToken);
+            
+            // БИЗНЕС-МЕТРИКА: место освобождено
+            metrics.SeatsReleased.Add(message.SeatsCount);
+
         }
         catch (NotFoundException ex)
         {
@@ -67,10 +72,14 @@ public class BookingCancelledConsumer(
         {
             try
             {
+                var sw = Stopwatch.StartNew();
 
                 var consumeResult = consumer.Consume(stoppingToken);
                 if (consumeResult?.Message?.Value == null)
                     continue;
+
+                // RED: сообщение потреблено
+                metrics.ConsumedMessages.Add(1);
 
                 var parent = KafkaTraceContext.ExtractFromHeaders(consumeResult.Message.Headers);
                 using var activity = KafkaTraceContext.Source.StartActivity("kafka consume booking-cancelled", ActivityKind.Consumer, parent);
@@ -83,6 +92,10 @@ public class BookingCancelledConsumer(
                 await HandleMessageAsync(message, stoppingToken);
 
                 consumer.Commit(consumeResult);
+
+                // RED: длительность обработки
+                sw.Stop();
+                metrics.ConsumerDuration.Record(sw.Elapsed.TotalSeconds);
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {
@@ -90,6 +103,8 @@ public class BookingCancelledConsumer(
             }
             catch (Exception ex)
             {
+                // RED: ошибка потребления
+                metrics.ConsumerErrors.Add(1);
                 logger.LogError(ex, "Ошибка при обработке сообщения BookingCancelled");
             }
         }

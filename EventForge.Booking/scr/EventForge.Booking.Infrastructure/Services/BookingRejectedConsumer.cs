@@ -24,7 +24,8 @@ namespace EventForge.Booking.Infrastructure.Services;
 public class BookingRejectedConsumer(
     IServiceScopeFactory scopeFactory,
     IOptions<KafkaOptions> kafkaOptions,
-    ILogger<BookingRejectedConsumer> logger) : BackgroundService
+    ILogger<BookingRejectedConsumer> logger,
+    KafkaMetrics metrics) : BackgroundService
 {
 
     private async Task HandleMessageAsync(
@@ -93,6 +94,9 @@ public class BookingRejectedConsumer(
         await processedRepository.AddAsync(
             message.MessageId, nameof(BookingRejected), ct);
 
+        // БИЗНЕС-МЕТРИКА: бронь отклонена
+        metrics.BookingsRejected.Add(1);
+
         logger.LogInformation(
             "Бронь {BookingId} отклонена. MessageId={MessageId}",
             message.BookingId, message.MessageId);
@@ -115,9 +119,14 @@ public class BookingRejectedConsumer(
         {
             try
             {
+                var sw = Stopwatch.StartNew();
+
                 var consumeResult = consumer.Consume(stoppingToken);
                 if (consumeResult?.Message?.Value == null)
                     continue;
+
+                metrics.ConsumedMessages.Add(1);
+
 
                 var parent = KafkaTraceContext.ExtractFromHeaders(consumeResult.Message.Headers);
                 using var activity = KafkaTraceContext.Source.StartActivity("kafka consume booking-rejected", ActivityKind.Consumer, parent);
@@ -131,6 +140,8 @@ public class BookingRejectedConsumer(
 
                 consumer.Commit(consumeResult);
 
+                sw.Stop();
+                metrics.ConsumerDuration.Record(sw.Elapsed.TotalSeconds);
             }
             catch (OperationCanceledException)
                 when (stoppingToken.IsCancellationRequested)
@@ -139,6 +150,7 @@ public class BookingRejectedConsumer(
             }
             catch (Exception ex)
             {
+                metrics.ConsumerErrors.Add(1);
                 logger.LogError(ex,
                     "Ошибка при обработке сообщения BookingRejected");
             }

@@ -17,7 +17,8 @@ namespace EventForge.Booking.Infrastructure.Services;
 public class OutboxPublisherBackgroundService(
     IServiceScopeFactory scopeFactory,
     ILogger<OutboxPublisherBackgroundService> logger,
-    TimeProvider timeProvider) : BackgroundService
+    TimeProvider timeProvider,
+    KafkaMetrics metrics) : BackgroundService
 {
     private const int BatchSize = 50;
     private const int DelaySeconds = 5;
@@ -56,15 +57,27 @@ public class OutboxPublisherBackgroundService(
             activity?.SetTag("messaging.destination.name", message.Topic);
             activity?.SetTag("messaging.message.id", message.Id.ToString());
 
+            var sw = Stopwatch.StartNew();
+
+
             try
             {
                 await publisher.PublishRawAsync(message.Topic, message.MessageKey, message.Payload, stoppingToken);
                 await outboxRepository.MarkProcessedAsync(message.Id, stoppingToken);
+
+                // RED: успешная публикация
+                metrics.PublishedMessages.Add(1);
+                sw.Stop();
+                metrics.PublishDuration.Record(sw.Elapsed.TotalSeconds);
             }
             catch (Exception ex)
             {
                 activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
                 await outboxRepository.MarkFailedAsync(message.Id, ex.Message, stoppingToken);
+
+                // RED: ошибка публикации
+                metrics.PublishErrors.Add(1);
+
                 logger.LogError(ex, "Ошибка публикации outbox сообщения {MessageId}", message.Id);
             }
         }

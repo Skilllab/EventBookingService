@@ -54,7 +54,7 @@ namespace EventForge.Events.UnitTests
                 provider.GetRequiredService<IServiceScopeFactory>(),
                 cacheMock.Object,
                 time,
-                Mock.Of<ILogger<BookingRequestedMessageProcessor>>());
+                Mock.Of<ILogger<BookingRequestedMessageProcessor>>(), Mock.Of<KafkaMetrics>());
 
             var retryPolicy = new BookingRequestedDbRetryPolicy(
                 Options.Create(new KafkaOptions
@@ -123,7 +123,8 @@ namespace EventForge.Events.UnitTests
                 provider.GetRequiredService<IServiceScopeFactory>(),
                 cacheMock.Object,
                 time,
-                Mock.Of<ILogger<BookingRequestedMessageProcessor>>());
+                Mock.Of<ILogger<BookingRequestedMessageProcessor>>(),
+                Mock.Of<KafkaMetrics>());
 
             var retryPolicy = new BookingRequestedDbRetryPolicy(
                 Options.Create(new KafkaOptions

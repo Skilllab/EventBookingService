@@ -34,7 +34,8 @@ public class KafkaConsumerTests
             provider.GetRequiredService<IServiceScopeFactory>(),
             cacheMock.Object,
             timeProvider,
-            Mock.Of<ILogger<BookingRequestedMessageProcessor>>());
+            Mock.Of<ILogger<BookingRequestedMessageProcessor>>(),
+            Mock.Of<KafkaMetrics>());
     }
 
     private static BookingRequestedDbRetryPolicy CreateDbRetryPolicy(KafkaOptions? options = null)
@@ -72,7 +73,8 @@ public class KafkaConsumerTests
         using var consumer = new BookingCancelledConsumer(
             provider.GetRequiredService<IServiceScopeFactory>(),
             Options.Create(new KafkaOptions { BootstrapServers = "localhost:9092", ConsumerGroup = "events-tests" }),
-            Mock.Of<ILogger<BookingCancelledConsumer>>());
+            Mock.Of<ILogger<BookingCancelledConsumer>>(),
+            Mock.Of<KafkaMetrics>());
 
         await consumer.HandleMessageAsync(message, CancellationToken.None);
 
@@ -102,7 +104,7 @@ public class KafkaConsumerTests
         using var consumer = new BookingCancelledConsumer(
             provider.GetRequiredService<IServiceScopeFactory>(),
             Options.Create(new KafkaOptions { BootstrapServers = "localhost:9092", ConsumerGroup = "events-tests" }),
-            Mock.Of<ILogger<BookingCancelledConsumer>>());
+            Mock.Of<ILogger<BookingCancelledConsumer>>(), Mock.Of<KafkaMetrics>());
 
         await consumer.HandleMessageAsync(message, CancellationToken.None);
 
@@ -130,7 +132,7 @@ public class KafkaConsumerTests
             Mock.Of<ILogger<BookingRequestedConsumer>>(),
             processor,
             retryPolicy,
-            timeProvider);
+            timeProvider, Mock.Of<KafkaMetrics>());
 
         await consumer.HandleMessageAsync(null, CancellationToken.None);
 
@@ -164,7 +166,7 @@ public class KafkaConsumerTests
             Mock.Of<ILogger<BookingRequestedConsumer>>(),
             processor,
             retryPolicy,
-            timeProvider);
+            timeProvider, Mock.Of<KafkaMetrics>());
 
         await consumer.HandleMessageAsync(message, CancellationToken.None);
 
@@ -201,7 +203,7 @@ public class KafkaConsumerTests
             Mock.Of<ILogger<BookingRequestedConsumer>>(),
             processor,
             retryPolicy,
-            timeProvider);
+            timeProvider, Mock.Of<KafkaMetrics>());
 
         await consumer.HandleMessageAsync(message, CancellationToken.None);
 
@@ -246,7 +248,7 @@ public class KafkaConsumerTests
             Mock.Of<ILogger<BookingRequestedConsumer>>(),
             processor,
             retryPolicy,
-            timeProvider);
+            timeProvider, Mock.Of<KafkaMetrics>());
 
         await consumer.HandleMessageAsync(message, CancellationToken.None);
 
@@ -292,7 +294,7 @@ public class KafkaConsumerTests
             Mock.Of<ILogger<BookingRequestedConsumer>>(),
             processor,
             retryPolicy,
-            timeProvider);
+            timeProvider, Mock.Of<KafkaMetrics>());
 
         await consumer.HandleMessageAsync(message, CancellationToken.None);
 
@@ -336,7 +338,7 @@ public class KafkaConsumerTests
             Mock.Of<ILogger<BookingRequestedConsumer>>(),
             processor,
             retryPolicy,
-            timeProvider);
+            timeProvider, Mock.Of<KafkaMetrics>());
 
         await consumer.HandleMessageAsync(message, CancellationToken.None);
 

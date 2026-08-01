@@ -21,9 +21,10 @@ namespace EventForge.Booking.Infrastructure.Services;
 public class BookingNotApprovedConsumer(
     IServiceScopeFactory scopeFactory,
     IOptions<KafkaOptions> kafkaOptions,
-    ILogger<BookingNotApprovedConsumer> logger) : BackgroundService
+    ILogger<BookingNotApprovedConsumer> logger,
+    KafkaMetrics metrics) : BackgroundService
 {
-    
+
     private async Task HandleMessageAsync(
         BookingNotApproved? message, CancellationToken ct)
     {
@@ -90,6 +91,9 @@ public class BookingNotApprovedConsumer(
         await processedRepository.AddAsync(
             message.MessageId, nameof(BookingNotApproved), ct);
 
+        // БИЗНЕС-МЕТРИКА: бронь не одобрена
+        metrics.BookingsRejected.Add(1);
+
         logger.LogInformation(
             "Бронь {BookingId} отклонена. MessageId={MessageId}",
             message.BookingId, message.MessageId);
@@ -112,9 +116,15 @@ public class BookingNotApprovedConsumer(
         {
             try
             {
+                var sw = Stopwatch.StartNew();
+
+
                 var consumeResult = consumer.Consume(stoppingToken);
                 if (consumeResult?.Message?.Value == null)
                     continue;
+
+                metrics.ConsumedMessages.Add(1);
+
 
                 var parent = KafkaTraceContext.ExtractFromHeaders(consumeResult.Message.Headers);
                 using var activity = KafkaTraceContext.Source.StartActivity("kafka consume booking-not-approved", ActivityKind.Consumer, parent);
@@ -128,6 +138,9 @@ public class BookingNotApprovedConsumer(
 
                 consumer.Commit(consumeResult);
 
+                sw.Stop();
+                metrics.ConsumerDuration.Record(sw.Elapsed.TotalSeconds);
+
             }
             catch (OperationCanceledException)
                 when (stoppingToken.IsCancellationRequested)
@@ -136,6 +149,8 @@ public class BookingNotApprovedConsumer(
             }
             catch (Exception ex)
             {
+                metrics.ConsumerErrors.Add(1);
+
                 logger.LogError(ex,
                     "Ошибка при обработке сообщения BookingNotApproved");
             }

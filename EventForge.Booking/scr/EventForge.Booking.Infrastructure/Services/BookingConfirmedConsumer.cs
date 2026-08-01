@@ -24,7 +24,8 @@ namespace EventForge.Booking.Infrastructure.Services;
 public class BookingConfirmedConsumer(
     IServiceScopeFactory scopeFactory,
     IOptions<KafkaOptions> kafkaOptions,
-    ILogger<BookingConfirmedConsumer> logger) : BackgroundService
+    ILogger<BookingConfirmedConsumer> logger,
+    KafkaMetrics metrics) : BackgroundService
 {
 
     private async Task HandleMessageAsync(
@@ -95,6 +96,9 @@ public class BookingConfirmedConsumer(
         await processedRepository.AddAsync(
             message.MessageId, nameof(BookingConfirmed), ct);
 
+        // БИЗНЕС-МЕТРИКА: бронь подтверждена
+        metrics.BookingsConfirmed.Add(1);
+
         logger.LogInformation(
             "Бронь {BookingId} успешно подтверждена. MessageId={MessageId}",
             message.BookingId, message.MessageId);
@@ -117,9 +121,14 @@ public class BookingConfirmedConsumer(
         {
             try
             {
+                var sw = Stopwatch.StartNew();  // ← замер времени
+
                 var consumeResult = consumer.Consume(stoppingToken);
                 if (consumeResult?.Message?.Value == null)
                     continue;
+
+                // RED: сообщение потреблено
+                metrics.ConsumedMessages.Add(1);
 
                 var parent = KafkaTraceContext.ExtractFromHeaders(consumeResult.Message.Headers);
                 using var activity = KafkaTraceContext.Source.StartActivity("kafka consume booking-confirmed", ActivityKind.Consumer, parent);
@@ -132,6 +141,11 @@ public class BookingConfirmedConsumer(
                 await HandleMessageAsync(message, stoppingToken);
 
                 consumer.Commit(consumeResult);
+
+                // RED: длительность обработки
+                sw.Stop();
+                metrics.ConsumerDuration.Record(sw.Elapsed.TotalSeconds);
+
             }
             catch (OperationCanceledException)
                 when (stoppingToken.IsCancellationRequested)
@@ -140,6 +154,9 @@ public class BookingConfirmedConsumer(
             }
             catch (Exception ex)
             {
+                // RED: ошибка потребления
+                metrics.ConsumerErrors.Add(1);
+
                 logger.LogError(ex,
                     "Ошибка при обработке сообщения BookingConfirmed");
             }
