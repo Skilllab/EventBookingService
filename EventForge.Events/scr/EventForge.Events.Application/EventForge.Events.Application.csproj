@@ -5,11 +5,13 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
     <PackageReference Include="Microsoft.Extensions.Options" />
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" />
+    <PackageReference Include="MediatR" />
+    <PackageReference Include="FluentValidation" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\EventForge.Shared\EventForge.CacheKeys\EventForge.CacheKeys.csproj" />
-    <ProjectReference Include="..\..\..\EventForge.Shared\EventForge.CQRS\EventForge.CQRS.csproj" />
+    <ProjectReference Include="..\..\..\EventForge.Shared\EventForge.Behaviors\EventForge.Behaviors.csproj" />
     <ProjectReference Include="..\..\scr\EventForge.Events.Domain\EventForge.Events.Domain.csproj" />
   </ItemGroup>
 

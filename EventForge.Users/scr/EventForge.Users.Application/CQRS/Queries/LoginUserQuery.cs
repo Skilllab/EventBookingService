@@ -1,4 +1,4 @@
-using EventForge.CQRS;
+using MediatR;
 
 namespace EventForge.Users.Application.CQRS.Queries;
 

@@ -1,4 +1,4 @@
-using EventForge.CQRS;
+using MediatR;
 using EventForge.Shared.Enums;
 
 namespace EventForge.Booking.Application.CQRS.Commands

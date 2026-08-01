@@ -1,9 +1,10 @@
-using EventForge.CQRS;
-using EventForge.CQRS.Behaviors;
+using EventForge.Behaviors.Behaviors;
+
+using MediatR;
+
 using EventForge.Users.Application.CQRS.Commands;
 using EventForge.Users.Application.CQRS.Handlers;
 using EventForge.Users.Application.CQRS.Queries;
-using EventForge.Users.Application.CQRS.Validators;
 using EventForge.Users.Application.Interfaces;
 using EventForge.Users.Application.Services;
 
@@ -28,10 +29,6 @@ public static class DependencyInjection
         services.AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
         services.AddScoped(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
         services.AddScoped(typeof(IPipelineBehavior<,>), typeof(MetricsBehavior<,>));
-
-        services.AddScoped<IRequestValidator<RegisterUserCommand>, RegisterUserCommandValidator>();
-        services.AddScoped<IRequestValidator<LoginUserQuery>, LoginUserQueryValidator>();
-
 
         return services;
     }

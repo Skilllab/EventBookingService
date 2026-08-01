@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
-
 using EventForge.Shared.Exceptions;
 
 namespace EventForge.Booking.Domain.Exceptions

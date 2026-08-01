@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 
-using EventForge.CQRS;
+using MediatR;
+
 using EventForge.Events.Application.CQRS.Commands;
 using EventForge.Events.Application.CQRS.Queries;
 using EventForge.Events.Presentation.DTO;

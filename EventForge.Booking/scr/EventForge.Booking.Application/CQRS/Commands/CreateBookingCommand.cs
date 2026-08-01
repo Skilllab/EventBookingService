@@ -1,5 +1,6 @@
 using EventForge.Booking.Application.DTO;
-using EventForge.CQRS;
+
+using MediatR;
 
 namespace EventForge.Booking.Application.CQRS.Commands;
 

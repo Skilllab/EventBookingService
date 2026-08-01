@@ -1,6 +1,7 @@
 using Asp.Versioning;
 
-using EventForge.CQRS;
+using MediatR;
+
 using EventForge.Users.Application.CQRS.Commands;
 using EventForge.Users.Application.CQRS.Queries;
 using EventForge.Users.Presentation.DTO;
@@ -19,7 +20,7 @@ namespace EventForge.Users.Presentation.Controllers;
 /// <param name="logger">Логгер</param>
 [AllowAnonymous]
 [ApiController]
-[Route("api/[controller]")]
+[Route("[controller]")]
 [Produces("application/json")]
 public class AuthController(ISender sender, ILogger<AuthController> logger) : ControllerBase
 {

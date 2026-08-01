@@ -25,7 +25,7 @@
     <Project Path="EventForge.Events/scr/EventForge.Events.Presentation/EventForge.Events.Presentation.csproj" Id="70b8c5bc-c2eb-40e5-88a2-57ab8e499b7a" />
   </Folder>
   <Folder Name="/EventForge.Events/tests/">
-    <Project Path="EventForge.Events/tests/EventForge.Events.ArchitectureTestsj/EventForge.Events.ArchitectureTests.csproj" Id="c4284f67-6952-4208-a964-a0efad6865b2" />
+    <Project Path="EventForge.Events/tests/EventForge.Events.ArchitectureTests/EventForge.Events.ArchitectureTests.csproj" Id="c4284f67-6952-4208-a964-a0efad6865b2" />
     <Project Path="EventForge.Events/tests/EventForge.Events.e2eTests/EventForge.Events.e2eTests.csproj" Id="a9ccfca7-fc1e-4ed2-bfe6-66fcf94d9d70" />
     <Project Path="EventForge.Events/tests/EventForge.Events.IntegrationTests/EventForge.Events.IntegrationTests.csproj" />
     <Project Path="EventForge.Events/tests/EventForge.Events.UnitTests/EventForge.Events.UnitTests.csproj" />
@@ -33,7 +33,7 @@
   <Folder Name="/EventForge.Shared/">
     <Project Path="EventForge.Shared/EventForge.CacheKeys/EventForge.CacheKeys.csproj" Id="231326f8-eb28-4c91-9ea4-6e40246b536d" />
     <Project Path="EventForge.Shared/EventForge.Contract/EventForge.Contract.csproj" Id="cd90d111-bd6c-4db9-97e3-ba7c9e310523" />
-    <Project Path="EventForge.Shared/EventForge.CQRS/EventForge.CQRS.csproj" Id="963dc91b-b075-45a7-bafd-0c2b2313def9" />
+    <Project Path="EventForge.Shared/EventForge.Behaviors/EventForge.Behaviors.csproj" Id="963dc91b-b075-45a7-bafd-0c2b2313def9" />
     <Project Path="EventForge.Shared/EventForge.Entities/EventForge.Shared.csproj" />
     <Project Path="EventForge.Shared/EventForge.ExceptionMiddleware/EventForge.ExceptionMiddleware.csproj" Id="99f14210-c2a1-4fbf-9e8a-77e22b342e43" />
     <Project Path="EventForge.Shared/EventForge.LoggingDBInterceptor/EventForge.LoggingDBInterceptor.csproj" Id="633c4d51-9249-474f-b5e0-8f6b20bd6a14" />

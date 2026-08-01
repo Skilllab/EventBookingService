@@ -2,8 +2,6 @@ using System.Reflection;
 
 using FluentAssertions;
 
-using Mono.Cecil;
-
 using NetArchTest.Rules;
 
 namespace EventForge.Users.ArchitectureTests;

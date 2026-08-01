@@ -3,10 +3,12 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" />
+    <PackageReference Include="MediatR" />
+    <PackageReference Include="FluentValidation" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\EventForge.Shared\EventForge.CQRS\EventForge.CQRS.csproj" />
+    <ProjectReference Include="..\..\..\EventForge.Shared\EventForge.Behaviors\EventForge.Behaviors.csproj" />
     <ProjectReference Include="..\EventForge.Users.Domain\EventForge.Users.Domain.csproj" />
   </ItemGroup>
 

@@ -1,31 +1,35 @@
-using EventForge.CQRS;
 using EventForge.Shared.Enums;
 using EventForge.Users.Application.CQRS.Commands;
-using EventForge.Users.Domain.Exceptions;
+
+using FluentValidation;
 
 namespace EventForge.Users.Application.CQRS.Validators;
 
 /// <summary>
 /// Валидация команды регистрации пользователя на уровне Application
 /// </summary>
-public sealed class RegisterUserCommandValidator : IRequestValidator<RegisterUserCommand>
+public sealed class RegisterUserCommandValidator : AbstractValidator<RegisterUserCommand>
 {
-    public void Validate(RegisterUserCommand request)
+    public RegisterUserCommandValidator()
     {
-        if (string.IsNullOrWhiteSpace(request.Login))
-            throw new ValidationCustomException(nameof(RegisterUserCommand), Guid.Empty.ToString(), "Логин обязателен.");
+        // Гарантирует остановку на первой же ошибке (Fail-Fast)
+        ClassLevelCascadeMode = CascadeMode.Stop;
 
-        if (request.Login.Length is < 3 or > 64)
-            throw new ValidationCustomException(nameof(RegisterUserCommand), Guid.Empty.ToString(), "Логин должен быть от 3 до 64 символов.");
+        RuleFor(x => x.Login)
+            .NotEmpty()
+            .WithMessage("Логин обязателен.")
+            .Length(3, 64)
+            .WithMessage("Логин должен быть от 3 до 64 символов.");
 
-        if (string.IsNullOrWhiteSpace(request.Password))
-            throw new ValidationCustomException(nameof(RegisterUserCommand), Guid.Empty.ToString(), "Пароль обязателен.");
+        RuleFor(x => x.Password)
+            .NotEmpty()
+            .WithMessage("Пароль обязателен.")
+            .MinimumLength(6)
+            .WithMessage("Пароль должен быть не короче 6 символов.");
 
-        if (request.Password.Length < 6)
-            throw new ValidationCustomException(nameof(RegisterUserCommand), Guid.Empty.ToString(), "Пароль должен быть не короче 6 символов.");
-
-        if (!string.IsNullOrWhiteSpace(request.Role) &&
-            !Enum.TryParse<RoleType>(request.Role, true, out _))
-            throw new ValidationCustomException(nameof(RegisterUserCommand), Guid.Empty.ToString(), "Роль указана некорректно.");
+        RuleFor(x => x.Role)
+            .Must(role => Enum.TryParse<RoleType>(role, true, out _))
+            .When(x => !string.IsNullOrWhiteSpace(x.Role))
+            .WithMessage("Роль указана некорректно.");
     }
 }

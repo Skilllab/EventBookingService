@@ -1,5 +1,5 @@
 using EventForge.Booking.Application.DTO;
-using EventForge.CQRS;
+using MediatR;
 using EventForge.Shared.Enums;
 
 namespace EventForge.Booking.Application.CQRS.Queries

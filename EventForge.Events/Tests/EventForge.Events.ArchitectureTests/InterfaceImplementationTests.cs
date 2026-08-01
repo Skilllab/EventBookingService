@@ -2,6 +2,8 @@ using System.Reflection;
 
 using FluentAssertions;
 
+using MediatR;
+
 using NetArchTest.Rules;
 
 namespace EventForge.Events.ArchitectureTests;
@@ -48,7 +50,7 @@ public sealed class InterfaceImplementationTests
             .And()
             .AreClasses()
             .Should()
-            .ImplementInterface(typeof(CQRS.IRequestHandler<,>))
+            .ImplementInterface(typeof(IRequestHandler<,>))
             .GetResult();
 
         result.IsSuccessful.Should().BeTrue(

@@ -1,18 +1,25 @@
-using EventForge.CQRS;
 using EventForge.Users.Application.CQRS.Queries;
+
+using FluentValidation;
 
 namespace EventForge.Users.Application.CQRS.Validators;
 
 /// <summary>
 /// Валидация запроса на вход пользователя на уровне Application
 /// </summary>
-public sealed class LoginUserQueryValidator : IRequestValidator<LoginUserQuery>
+public sealed class LoginUserQueryValidator : AbstractValidator<LoginUserQuery>
 {
-    public void Validate(LoginUserQuery request)
+    public LoginUserQueryValidator()
     {
-        if (string.IsNullOrWhiteSpace(request.Login))
-            throw new ArgumentException("Login обязателен.");
-        if (string.IsNullOrWhiteSpace(request.Password))
-            throw new ArgumentException("Password обязателен.");
+        // Прекращает всю валидацию класса, как только ЛЮБОЕ правило вернет ошибку
+        ClassLevelCascadeMode = CascadeMode.Stop;
+
+        RuleFor(x => x.Login)
+            .NotEmpty() // Проверяет на null, empty и whitespace
+            .WithMessage("Login обязателен.");
+
+        RuleFor(x => x.Password)
+            .NotEmpty() // Проверяет на null, empty и whitespace
+            .WithMessage("Password обязателен.");
     }
 }

@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 using EventForge.Booking.Application.CQRS.Commands;
 using EventForge.Booking.Application.CQRS.Queries;
-using EventForge.CQRS;
+using MediatR;
 using EventForge.Shared.Constants;
 using EventForge.Shared.Enums;
 

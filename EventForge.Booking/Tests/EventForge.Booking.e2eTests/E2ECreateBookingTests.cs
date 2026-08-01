@@ -82,10 +82,6 @@ namespace EventForge.Booking.e2eTests
             await _dbContainer.DisposeAsync();
         }
 
-        // ========================================================================
-        // Auth helpers
-        // ========================================================================
-
         private static string GenerateToken(Guid userId, RoleType role)
         {
 
@@ -126,16 +122,10 @@ namespace EventForge.Booking.e2eTests
             await using var scope = _factory.Services.CreateAsyncScope();
             var db = scope.ServiceProvider.GetRequiredService<IDbContextFactory<BookingDbContext>>();
             await using var ctx = await db.CreateDbContextAsync();
-            //await ctx.Bookings.ExecuteDeleteAsync();
-            //await ctx.SaveChangesAsync();
-
             await ctx.Database.ExecuteSqlRawAsync(
                 "TRUNCATE TABLE \"Booking\".\"Bookings\" RESTART IDENTITY CASCADE");
         }
 
-        // ========================================================================
-        // POST /bookings/{eventId} — CreateBooking
-        // ========================================================================
 
         [Fact]
         public async Task CreateBooking_Should_Return_Accepted_When_Valid_Token()

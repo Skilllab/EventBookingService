@@ -1,20 +1,25 @@
 using EventForge.Booking.Application.CQRS.Commands;
-using EventForge.Booking.Domain.Exceptions;
-using EventForge.CQRS;
+
+using FluentValidation;
 
 namespace EventForge.Booking.Application.CQRS.Validators;
 
 /// <summary>
 /// Валидация команды отмены бронирования
 /// </summary>
-public sealed class CancelBookingCommandValidator :  IRequestValidator<CancelBookingCommand>
+public sealed class CancelBookingCommandValidator : AbstractValidator<CancelBookingCommand>
 {
-    public void Validate(CancelBookingCommand request)
+    public CancelBookingCommandValidator()
     {
-        if (request.BookingId == Guid.Empty)
-            throw new ValidationCustomException(nameof(CancelBookingCommand), Guid.Empty.ToString(), "Идентификатор бронирования обязателен");
+        // Останавливаем проверку при первой ошибке
+        RuleLevelCascadeMode = CascadeMode.Stop;
 
-        if (request.UserId == Guid.Empty)
-            throw new ValidationCustomException(nameof(CancelBookingCommand), Guid.Empty.ToString(), "Идентификатор пользователя обязателен");
+        RuleFor(x => x.BookingId)
+            .NotEqual(Guid.Empty)
+            .WithMessage("Идентификатор бронирования обязателен");
+
+        RuleFor(x => x.UserId)
+            .NotEqual(Guid.Empty)
+            .WithMessage("Идентификатор пользователя обязателен");
     }
 }

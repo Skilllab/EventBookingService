@@ -1,7 +1,8 @@
 using EventForge.Booking.Application.CQRS.Commands;
 using EventForge.Booking.Application.DTO;
 using EventForge.Booking.Application.Interfaces;
-using EventForge.CQRS;
+
+using MediatR;
 
 namespace EventForge.Booking.Application.CQRS.Handlers
 {
