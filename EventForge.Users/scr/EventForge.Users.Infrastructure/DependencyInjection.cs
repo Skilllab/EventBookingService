@@ -1,3 +1,5 @@
+using System;
+
 using EventForge.LoggingDBInterceptor;
 using EventForge.Settings.JWT;
 using EventForge.Users.Application.Interfaces;
@@ -26,6 +28,15 @@ public static class DependencyInjection
     {
         const string serviceName = "EventForge.Users";
         const string serviceVersion = "1.0.0";
+
+        // Регистрируем сами проверки здоровья и привязываем их к инфраструктуре
+        services.AddHealthChecks()
+            .AddNpgSql(configuration.GetConnectionString("DefaultConnection")!)
+            .AddRedis(configuration.GetConnectionString("Redis")!)
+            .AddKafka(setup =>
+            {
+                setup.BootstrapServers = configuration["KafkaOptions:BootstrapServers"]!;
+            }, name: "kafka");
 
         services.AddOpenTelemetry()
             .ConfigureResource(resource => resource

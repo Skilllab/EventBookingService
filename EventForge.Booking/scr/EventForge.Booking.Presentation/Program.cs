@@ -5,7 +5,11 @@ using EventForge.Booking.Presentation;
 using EventForge.ExceptionMiddleware;
 using EventForge.Swagger;
 
+using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 using Serilog;
 using Serilog.Formatting.Compact;
@@ -60,6 +64,8 @@ if (!app.Environment.IsDevelopment())
 app.MapPrometheusScrapingEndpoint(); // доступен по /metrics
 
 app.MapControllers();
+
+app.MapHealthChecks("/health");
 
 app.Run();
 
