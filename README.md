@@ -17,11 +17,14 @@
 - [Сервисы](#сервисы)
 - [Технологии](#технологии)
 - [Аутентификация и роли](#аутентификация-и-роли)
-- [CQRS и внутренний Mediator](#cqrs-и-внутренний-mediator)
+- [CQRS и MediatR](#cqrs-и-mediatr)
 - [Валидация и Pipeline Behaviors](#валидация-и-pipeline-behaviors)
 - [Kafka и асинхронные процессы](#kafka-и-асинхронные-процессы)
 - [Запуск проекта](#запуск-проекта)
 - [Наблюдаемость](#наблюдаемость)
+- [Swagger и API-документация](#swagger-и-api-документация)
+- [Health Checks](#health-checks)
+- [Логирование](#логирование)
 - [Миграции](#миграции)
 - [Тестирование](#тестирование)
 - [API примеры](#api-примеры)
@@ -57,6 +60,9 @@ Presentation -> Application -> Domain
 - `EventForge.Shared/EventForge.ExceptionMiddleware` — middleware для обработки ошибок
 - `EventForge.Shared/EventForge.LoggingDBInterceptor` — DB interceptor и инфраструктурные расширения
 - `EventForge.Shared/EventForge.Settings` — общие настройки, включая JWT
+- `EventForge.Shared/EventForge.Behaviors` — pipeline-поведения MediatR (валидация, логирование, метрики)
+- `EventForge.Shared/EventForge.CacheKeys` — константы ключей кэша Redis
+- `EventForge.Shared/EventForge.Swagger` — Swagger UI с API-версионированием и кастомизацией
 
 ### Основные компоненты сервисов
 
@@ -78,6 +84,9 @@ Presentation -> Application -> Domain
 - `BookingRequestedDbRetryPolicy` — in-place retry с exponential backoff
 - `BookingCancelledConsumer` — освобождение мест при отмене брони
 - `OutboxPublisherBackgroundService` — публикация outbox-сообщений в Kafka
+- `KafkaEventPublisher` — отправка сообщений в Kafka
+- `KafkaMetrics` — RED-метрики producer/consumer
+- `RedisCacheService` — кэширование событий
 
 #### `EventForge.Booking`
 
@@ -87,6 +96,7 @@ Presentation -> Application -> Domain
 - `ProcessedMessageRepository` — дедупликация входящих Kafka-событий
 - `OutboxPublisherBackgroundService` — публикация outbox в Kafka
 - `KafkaBookingPublisher` — отправка сообщений в Kafka
+- `KafkaMetrics` — RED-метрики producer/consumer
 - `BookingConfirmedConsumer` — подтверждение брони
 - `BookingRejectedConsumer` — отклонение (событие не найдено)
 - `BookingNotApprovedConsumer` — отклонение (нет мест / началось)
@@ -97,11 +107,22 @@ Presentation -> Application -> Domain
 - Entity Framework Core 10
 - PostgreSQL
 - Confluent.Kafka
+- MediatR 12.4 (CQRS pipeline)
+- FluentValidation 12.1 (валидаторы команд/запросов)
+- Serilog (структурное логирование)
+- Swashbuckle / Swagger (API-документация)
+- Asp.Versioning (API-версионирование)
+- AspNetCore.HealthChecks (проверки PostgreSQL, Redis, Kafka)
+- StackExchange.Redis (кэширование)
+- OpenTelemetry (трассировка и метрики)
 - xUnit 3
 - FluentAssertions
 - Moq
 - Testcontainers for .NET
 - Polly (resilience pipelines для in-place retry)
+- NetArchTest.Rules (архитектурные тесты)
+
+Управление версиями пакетов — централизованное через `Directory.Packages.props`.
 
 ## Аутентификация и роли
 
@@ -117,7 +138,7 @@ JWT содержит как минимум:
 - `sub` — GUID пользователя
 - `role` — `User` или `Admin`
 
-## CQRS и внутренний Mediator
+## CQRS и MediatR
 
 В сервисах `Booking`, `Events`, `Users` применён CQRS-подход на уровне Application-слоя:
 
@@ -126,15 +147,31 @@ JWT содержит как минимум:
 - `Handlers` — отдельные обработчики для каждого сценария
 - контроллеры делегируют выполнение через `ISender`
 
-Для dispatch-запросов используется внутренний mediator без внешних зависимостей:
+Для dispatch-запросов используется библиотека [MediatR](https://github.com/jbogard/MediatR) 12.4:
 
-- `IRequest<TResponse>`
-- `IRequestHandler<TRequest, TResponse>`
-- `ISender`
-- `Mediator` (резолвинг handler через DI)
+- `IRequest<TResponse>` — маркер команды/запроса (от `MediatR`)
+- `IRequestHandler<TRequest, TResponse>` — обработчик (от `MediatR`)
+- `ISender` — точка входа (`MediatR.ISender`)
+- `Mediator` — резолвинг handler + pipeline (от `MediatR`)
+
+Регистрация в DI — явная, без сборок (performance-oriented):
+
+```csharp
+services.AddScoped<ISender, Mediator>();
+services.AddScoped<IRequestHandler<CreateBookingCommand, BookingInfoDTO>, CreateBookingHandler>();
+services.AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+services.AddScoped(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
+services.AddScoped(typeof(IPipelineBehavior<,>), typeof(MetricsBehavior<,>));
+```
+
+Команды/запросы реализованы как `record`'ы:
+
+```csharp
+public sealed record CreateBookingCommand(Guid EventId, Guid UserId) : IRequest<BookingInfoDTO>;
+```
 
 Это позволяет:
-- изолировать use-case’ы по файлам;
+- изолировать use-case'ы по файлам;
 - проще тестировать бизнес-сценарии (unit-тесты на handlers);
 - централизованно добавлять cross-cutting логику (валидация, аудит, логирование, pipeline-поведение).
 
@@ -142,18 +179,21 @@ JWT содержит как минимум:
 
 Каждый Command/Query проходит через цепочку pipeline-поведений:
 
-1. `ValidationBehavior` — вызывает все реализации `IRequestValidator<TRequest>`
+1. `ValidationBehavior` — вызывает все реализации `IValidator<TRequest>` из **FluentValidation**
 2. `LoggingBehavior` — логирует start/success/failure
 3. `MetricsBehavior` — пишет метрики `cqrs_requests_total` и `cqrs_request_duration_ms`
 
-Валидаторы:
+Pipeline-поведения находятся в `EventForge.Shared/EventForge.Behaviors/Behaviors/` и реализуют `MediatR.IPipelineBehavior<TRequest, TResponse>`.
+
+Валидаторы наследуются от `AbstractValidator<T>` (FluentValidation):
+
 - `RegisterUserCommandValidator` — проверяет login (3–64 симв.), password (≥6 симв.), role
 - `LoginUserQueryValidator` — проверяет, что login/password не пустые
 - `CreateEventCommandValidator` — проверяет название, даты (StartAt > now, StartAt < EndAt)
 - `ChangeEventCommandValidator` — проверяет EventId, nullable-поля (StartAt, EndAt, Title)
 - `CreateBookingCommandValidator` — проверяет EventId ≠ Guid.Empty, UserId ≠ Guid.Empty
 - `CancelBookingCommandValidator` — проверяет BookingId ≠ Guid.Empty, UserId ≠ Guid.Empty
-- 
+
 
 ## Kafka и асинхронные процессы
 
@@ -437,7 +477,15 @@ dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Host=localhost;Po
 - клиентские метрики producer/consumer (publish/consume/process counters и latency histograms);
 - сквозная трассировка через Kafka headers (`traceparent`/`tracestate`);
 - перенос trace-context через Outbox (`TraceParent`, `TraceState` в `OutboxMessages`);
-- продолжение trace в consumer’ах с `ActivityKind.Consumer`.
+- продолжение trace в consumer'ах с `ActivityKind.Consumer`.
+
+Класс `KafkaMetrics` регистрирует RED-метрики через `MeterFactory`:
+- `eventforge.kafka.messages_published` — счётчик отправленных сообщений
+- `eventforge.kafka.publish_duration_seconds` — гистограмма длительности отправки
+- `eventforge.kafka.messages_consumed` — счётчик полученных сообщений
+- `eventforge.kafka.consume_duration_seconds` — гистограмма длительности обработки
+
+Метрики регистрируются в OpenTelemetry через `AddMeter("EventForge.Booking.Kafka")` / `AddMeter("EventForge.Events.Kafka")`.
 
 Результат:
 - в `Jaeger` видна непрерывная цепочка:
@@ -470,6 +518,95 @@ docker compose up -d
 - `Latency (p50, p95, p99)`
 - `Текущее количество запросов в обработке`
 - `Throughput (RPS)`
+
+## Swagger и API-документация
+
+Все три сервиса предоставляют Swagger UI через общий проект `EventForge.Shared/EventForge.Swagger`.
+
+### Ключевые возможности
+
+- **API-версионирование** через `Asp.Versioning` — версия читается из URL (`/v1/Events`)
+- **JWT-аутентификация** в Swagger UI — кнопка Authorize с поддержкой Bearer-токенов
+- **XML-комментарии** — автоматический импорт документации из `<summary>` тегов
+- **Кастомный UI** — встроенные JS/CSS для копирования токена, переключения API-версий и темы Material
+- **Swagger UI доступен** в окружениях `Development` и `Docker`
+
+### Регистрация
+
+В `Program.cs` каждого сервиса:
+
+```csharp
+using EventForge.Swagger;
+
+// В Presentation/DependencyInjection.cs:
+services.AddSharedSwagger("EventForge Booking API");
+
+// В Program.cs:
+if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Docker"))
+{
+    app.UseSwagger();
+    app.UseSharedSwaggerUI("Booking"); // "Users" или "Events" для других сервисов
+}
+```
+
+## Health Checks
+
+Каждый сервис предоставляет endpoint `/health` для проверки состояния инфраструктурных зависимостей.
+
+### Проверяемые компоненты
+
+| Сервис | PostgreSQL | Redis | Kafka |
+|---|---|---|---|
+| Users | ✅ | ✅ | ✅ |
+| Events | ✅ | ✅ | ✅ |
+| Booking | ✅ | ❌ | ✅ |
+
+Проверки регистрируются в Infrastructure-слое через пакеты `AspNetCore.HealthChecks.*`:
+
+```csharp
+services.AddHealthChecks()
+    .AddNpgSql(configuration.GetConnectionString("DefaultConnection")!)
+    .AddRedis(configuration.GetConnectionString("Redis")!)
+    .AddKafka(setup =>
+    {
+        setup.BootstrapServers = configuration["KafkaOptions:BootstrapServers"]!;
+    }, name: "kafka");
+```
+
+В `Program.cs` маппится эндпоинт:
+
+```csharp
+app.MapHealthChecks("/health");
+```
+
+## Логирование
+
+Для всех трёх сервисов используется **Serilog** как провайдер структурного логирования с выводом в консоль в формате **Compact JSON**.
+
+### Конфигурация
+
+В `Program.cs` каждого сервиса:
+
+```csharp
+using Serilog;
+using Serilog.Formatting.Compact;
+
+builder.Logging.AddConsole();
+
+builder.Host.UseSerilog((ctx, cfg) =>
+    cfg.ReadFrom.Configuration(ctx.Configuration)
+        .WriteTo.Console(new CompactJsonFormatter()));
+```
+
+Serilog читает конфигурацию из `appsettings.json` (секция `Serilog`), что позволяет гибко настраивать уровни логирования и sinks без изменения кода.
+
+### CQRS-логирование
+
+`LoggingBehavior` (из `EventForge.Behaviors`) логирует каждый CQRS-запрос через `ILogger<LoggingBehavior<TReq,TRes>>`:
+
+- `CQRS start {Name}` — при входе в обработчик
+- `CQRS success {Name}` — при успешном выполнении
+- `CQRS failed {Name}` — при исключении (с деталями ошибки)
 
 ## Миграции
 
@@ -528,6 +665,14 @@ dotnet test EventForge.Booking/Tests/EventForge.Booking.e2eTests/EventForge.Book
 ```
 
 Integration-тесты используют `Testcontainers.PostgreSql`, поэтому для них нужен запущенный Docker Desktop.
+
+### Архитектурные тесты
+
+Каждый сервис содержит проект `ArchitectureTests` на базе `NetArchTest.Rules`:
+
+- `LayerDependencyTests` — проверка соблюдения слоёной архитектуры (Presentation → Application → Domain)
+- `NamingConventionTests` — проверка соглашений об именовании
+- `InterfaceImplementationTests` — проверка, что все интерфейсы имеют реализации
 
 ## Стратегия кэширования
 
